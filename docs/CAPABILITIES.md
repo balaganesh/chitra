@@ -48,7 +48,7 @@ Output: {
 ```
 
 `speak(text)`
-Converts text to speech and plays through speaker. In text mode, TTS still plays so Chitra has a voice even when the user is typing. Blocks until audio playback is complete.
+Converts text to speech and plays through speaker. In text mode, TTS is skipped — the user reads Chitra's response on screen. In voice mode, blocks until audio playback is complete.
 ```json
 Input: {
   "text": string

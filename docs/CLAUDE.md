@@ -167,6 +167,7 @@ All configuration comes from environment variables (`.env` file):
 |---|---|---|
 | `CHITRA_DATA_DIR` | `~/.chitra/data` | Storage directory |
 | `CHITRA_LLM_MODEL` | `llama3.1:8b` | Ollama model name |
+| `CHITRA_WHISPER_MODEL` | `base` | Whisper STT model size (base, small, medium) |
 | `CHITRA_PROACTIVE_INTERVAL` | `60` | Proactive loop tick in seconds |
 | `CHITRA_HISTORY_TURNS` | `10` | Conversation turns in LLM context |
 
