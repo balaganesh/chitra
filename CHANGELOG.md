@@ -1,3 +1,25 @@
+## 2026-02-22 — Session 4
+
+### Added
+- **132 capability tests** — filled `test_capabilities.py` (95 tests) and `test_memory.py` (37 tests) with formal pytest coverage for all 7 capabilities
+- `test_capabilities.py` covers: Contacts (19), Calendar (14), Reminders (14), Tasks (19), SystemState (9), VoiceIO (20)
+- `test_memory.py` covers: store (11), search (6), update (3), deactivate (3), context block formatting (7), context window rules (4), last_referenced tracking (2), relationship aging (2)
+- **README.md updated** — reflects current implementation status, capabilities, orchestration layer, tech stack, configuration, project structure, test counts
+
+### Changed
+- Total test count: 80 → 212 (132 new tests, all passing)
+
+### Fixed
+- Nothing
+
+### Deferred
+- Piper TTS binary download in setup_piper.py
+- Voice mode end-to-end testing with audio deps
+- End-to-end integration test with live Ollama
+- Linux VM testing
+
+---
+
 ## 2026-02-21 — Session 3
 
 ### Added
@@ -25,7 +47,7 @@
 - Voice mode end-to-end testing with audio deps
 - End-to-end integration test with live Ollama
 - Linux VM testing
-- Fill test_capabilities.py and test_memory.py stubs
+- ~~Fill test_capabilities.py and test_memory.py stubs~~ (done in Session 4)
 
 ---
 

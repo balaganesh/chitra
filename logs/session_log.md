@@ -1,3 +1,39 @@
+## Session — 2026-02-22 (Session 4)
+
+### What was discussed
+- Filling the empty test stubs for all 7 capabilities from Session 2
+- No new architectural decisions — all capabilities were already built and smoke-tested
+
+### Key decisions made
+- None — this was a test-writing session, no design changes
+
+### What was built
+- **`tests/test_memory.py`** — 37 tests across 2 classes:
+  - **TestMemoryStorage** (20 tests) — store all 4 categories, defaults, unique IDs, validation errors (missing category/subject/content, invalid category, invalid source), search (by subject/content, case-insensitive, no results, excludes inactive, ordered by confidence), update (content, refreshes last_referenced, not found), deactivate (success, excludes from context, not found)
+  - **TestMemoryContext** (17 tests) — empty context, includes preferences, includes high-confidence facts, excludes low-confidence facts, includes recent relationships, includes observations, excludes inactive, section formatting (About/People/Patterns), multiple sections, last_referenced tracking (included vs excluded), relationship aging (30-day rule: old excluded, recent included)
+
+- **`tests/test_capabilities.py`** — 95 tests across 6 classes:
+  - **TestContacts** (19 tests) — create (full/minimal/missing name), get (exact/partial/case-insensitive/not found), list (empty/all/ordered), update (fields/invalid/not found), note_interaction (success/not found), get_neglected (none/finds old/ordered)
+  - **TestCalendar** (14 tests) — create (basic/participants/duration/missing fields), get_today (found/ordered/empty), get_range (found/inclusive/empty), get_upcoming (future/excludes past)
+  - **TestReminders** (14 tests) — create (basic/contact_id/missing fields), get_fired (past/excludes future/excludes dismissed), dismiss (success/not found), list_upcoming (found/excludes past/excludes dismissed), delete (success/not found)
+  - **TestTasks** (19 tests) — create (basic/full/missing title/invalid priority/valid priorities), list (all/pending/done/invalid/empty), complete (success/not found), get_overdue (found/excludes future/excludes done/excludes no date), get_due_today (found/excludes other dates/excludes done)
+  - **TestSystemState** (9 tests) — get returns all keys, datetime is ISO, day_of_week valid, battery is integer, time_of_day classification, mocked time-of-day (morning/afternoon/evening/night)
+  - **TestVoiceIO** (20 tests) — default mode, conversation log empty, set_input_mode (text/invalid/voice without deps), listen text (normal/empty/strips whitespace/EOF), speak text mode (skips TTS/empty), display (adds to log/user only/chitra only/returns done), confidence extraction (no segments/good/poor/clamped)
+
+- **README.md** — updated from "Pre-development" to "Core implementation complete" with full project details
+
+### Open questions
+- None
+
+### Deferred work
+- Piper TTS binary download in setup_piper.py
+- Voice mode end-to-end testing with audio deps
+- End-to-end integration test with live Ollama
+- Linux VM testing
+- Keyboard shortcuts / spacebar activation (mentioned in docs, not critical for POC)
+
+---
+
 ## Session — 2026-02-21 (Session 3)
 
 ### What was discussed

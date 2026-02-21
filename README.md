@@ -168,14 +168,14 @@ chitra/
 
 ## Tests
 
-80 tests, all passing:
+212 tests, all passing:
 
 ```bash
 source venv/bin/activate
 python3 -m pytest tests/ -v
 ```
 
-Coverage includes Orchestration Core, Proactive Loop, Context Assembly, LLM Client, Prompts, and Onboarding Flow. Voice mode end-to-end and live Ollama integration are deferred to runtime testing.
+Coverage includes all 7 capabilities, Orchestration Core, Proactive Loop, Context Assembly, LLM Client, Prompts, and Onboarding Flow. Voice mode end-to-end and live Ollama integration are deferred to runtime testing.
 
 ---
 

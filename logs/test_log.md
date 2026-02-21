@@ -1,3 +1,36 @@
+## Test Run — 2026-02-22 (Session 4)
+
+### Summary
+- Total formal tests: 212
+- Passed: 212
+- Failed: 0
+- All modules import cleanly
+- Run time: ~2 seconds
+
+### Tests added this session
+
+**`tests/test_memory.py`** — 37 tests across 2 classes:
+- **TestMemoryStorage** (20 tests) — store fact, store preference, store observation, store relationship, store defaults, store unique IDs, store missing category, store missing subject, store missing content, store invalid category, store invalid source, search by subject, search by content, search case insensitive, search no results, search excludes inactive, search ordered by confidence, update content, update refreshes last_referenced, update not found, deactivate, deactivate excludes from context, deactivate not found
+- **TestMemoryContext** (17 tests) — empty context, includes preferences, includes high-confidence facts, excludes low-confidence facts, includes recent relationships, includes observations, excludes inactive, has About section, has People section, has Patterns section, multiple sections, get_context updates last_referenced for included, get_context does not update excluded, old relationship excluded (30-day rule), recent relationship included
+
+**`tests/test_capabilities.py`** — 95 tests across 6 classes:
+- **TestContacts** (19 tests) — create (4), get (4), list (3), update (3), note_interaction (2), get_neglected (3)
+- **TestCalendar** (14 tests) — create (6), get_today (3), get_range (3), get_upcoming (2)
+- **TestReminders** (14 tests) — create (4), get_fired (3), dismiss (2), list_upcoming (3), delete (2)
+- **TestTasks** (19 tests) — create (5), list (5), complete (2), get_overdue (4), get_due_today (3)
+- **TestSystemState** (9 tests) — get keys (1), datetime (1), day_of_week (1), battery (1), time_of_day (5)
+- **TestVoiceIO** (20 tests) — init (2), set_input_mode (3), listen text (4), speak text (2), display (4), confidence (5)
+
+### Coverage notes
+- All 7 capabilities now have formal pytest coverage
+- Memory context window rules (30-day relationship aging, confidence thresholds) are tested with direct DB manipulation
+- SystemState time-of-day classification tested with mocked datetime
+- VoiceIO tested in text mode only — voice pipeline requires audio deps
+- Piper TTS not tested — requires binary
+- End-to-end handle_input() pipeline not tested — requires live Ollama
+
+---
+
 ## Test Run — 2026-02-21 (Session 3)
 
 ### Summary
