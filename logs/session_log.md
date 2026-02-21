@@ -36,6 +36,14 @@
 - **Proactive Prompt** (`llm/prompts.py`) — added `PROACTIVE_PROMPT_TEMPLATE`
 - **78 pytest tests** across `test_orchestration.py` and `test_onboarding.py` — all passing
 
+**Code review fixes (from Codex evaluation):**
+- **Conversation history now sent to LLM** — `LLMClient.call()` accepts `conversation_history` param; `handle_input()` passes history to both LLM calls for multi-turn continuity
+- **Onboarding no longer marks complete on failure** — removed `_mark_complete()` from exception handler; onboarding retries on next boot if it crashes
+- **Memory last_referenced scoped to included entries** — changed from blanket update of all active rows to only updating entries actually included in the context block, so aging/recency rules work correctly
+- **Capability catalog added to system prompt** — `CAPABILITY_CATALOG` constant lists all 6 capabilities with their exact actions and params; injected into every LLM call so the model doesn't hallucinate actions
+- **torch.hub.load network warning** — added docstring note about potential network fetch on first VAD model load
+- **80 pytest tests** (2 added for new fixes) — all passing
+
 ### Open questions
 - End-to-end testing with actual Ollama LLM is not covered by unit tests — requires Ollama running locally
 - The full `handle_input()` pipeline (context → LLM → action → response) is not tested end-to-end because it requires a live LLM connection
@@ -45,6 +53,8 @@
 - Voice mode end-to-end testing with audio deps
 - End-to-end integration test with live Ollama
 - Linux VM testing
+- Fill test_capabilities.py and test_memory.py stubs (Session 2 capability tests)
+- Keyboard shortcuts / spacebar activation (mentioned in docs, not critical for POC)
 
 ---
 

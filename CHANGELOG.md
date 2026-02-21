@@ -10,16 +10,22 @@
 - **78 pytest tests** — comprehensive coverage for OrchestrationCore, ProactiveLoop, ContextAssembly, LLMClient, Prompts, and OnboardingFlow
 
 ### Changed
-- Nothing
+- `LLMClient.call()` now accepts `conversation_history` parameter for multi-turn continuity
+- Memory `get_context()` only updates `last_referenced` for entries actually included in context (fixes aging/recency rules)
+- Context assembly now includes `CAPABILITY_CATALOG` in every system prompt
 
 ### Fixed
-- Nothing
+- Conversation history was not being sent to the LLM — multi-turn continuity was broken
+- Onboarding marked complete even on failure — partially seeded Memory could never be retried
+- Memory `last_referenced` bulk update on all active entries defeated relationship aging rules
+- LLM had no catalog of available actions — could hallucinate unsupported capabilities
 
 ### Deferred
 - Piper TTS binary download in setup_piper.py
 - Voice mode end-to-end testing with audio deps
 - End-to-end integration test with live Ollama
 - Linux VM testing
+- Fill test_capabilities.py and test_memory.py stubs
 
 ---
 

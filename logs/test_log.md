@@ -1,20 +1,20 @@
 ## Test Run — 2026-02-21 (Session 3)
 
 ### Summary
-- Total formal tests: 78
-- Passed: 78
+- Total formal tests: 80
+- Passed: 80
 - Failed: 0
 - All 14 modules import cleanly
 - Smoke tests: 43 checks passed across 5 inline scripts
 
 ### Tests added this session
 
-**`tests/test_orchestration.py`** — 52 tests across 5 classes:
+**`tests/test_orchestration.py`** — 54 tests across 5 classes:
 - **TestOrchestrationCore** (17 tests) — initialization, capability dispatch table, initial state, update_history (stores + trims), execute_action (contacts create/get/list, tasks, reminders, calendar, unknown capability, unknown action, missing fields), store_memories (valid entries, invalid entries, empty list)
 - **TestProactiveLoop** (9 tests) — initialization, custom interval, gather empty context, gather overdue tasks, gather fired reminders, gather neglected contacts, tick skips when user active, tick no data, dismiss fired reminders
-- **TestContextAssembly** (12 tests) — assemble basic, includes identity, includes format, includes system state, includes memory, preserves history, format system state (normal + error), format upcoming events (normal + empty), format upcoming reminders (normal + empty)
+- **TestContextAssembly** (13 tests) — assemble basic, includes identity, includes format, includes system state, includes memory, preserves history, includes capability catalog, format system state (normal + error), format upcoming events (normal + empty), format upcoming reminders (normal + empty)
 - **TestLLMClient** (9 tests) — initialization, parse valid JSON, parse JSON in markdown, parse JSON with surrounding text, parse missing response field, parse invalid JSON, validate fills defaults, validate rejects non-dict, fallback response
-- **TestPrompts** (5 tests) — system identity, response format instruction, correction prompt, proactive prompt template, proactive prompt formats
+- **TestPrompts** (6 tests) — system identity, response format instruction, correction prompt, capability catalog exists, proactive prompt template, proactive prompt formats
 
 **`tests/test_onboarding.py`** — 26 tests:
 - **TestOnboarding** — should_run first boot, should_run after complete, mark_complete creates file, marker path, step count (5), all topics covered, step required fields, valid memory categories, format_name, format_input_mode, format_key_people, format_work_schedule, process_input_mode (text/keyboard/default), is_empty_answer (6 variants), build_summary (with memories/skips name/empty/no name)
