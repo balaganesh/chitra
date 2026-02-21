@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """
 Memory capability — the heart of Chitra.
 
