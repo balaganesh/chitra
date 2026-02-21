@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+
+# Virtual environment
+venv/
+
+# Environment config
+.env
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Chitra data (local runtime data, not source)
+.chitra/
+
+# pytest
+.pytest_cache/
+
+# Claude Code
+.claude/
