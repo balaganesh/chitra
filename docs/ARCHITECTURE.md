@@ -68,7 +68,7 @@ The full specification of each capability is in `CAPABILITIES.md`.
 The brain of Chitra. Boots as the primary process on startup. Never exits. Has four responsibilities:
 
 **1. Input handling**
-Activated by wake word "Chitra" or keyboard trigger (spacebar). Receives text from the Voice I/O capability after speech-to-text conversion. Passes it into the reasoning pipeline.
+Receives text from the Voice I/O capability — either typed directly by the user (text mode) or transcribed from speech (voice mode). Both input modes are first-class. The Orchestration Core receives identical text output from both and does not distinguish between them. Passes it into the reasoning pipeline.
 
 **2. Context assembly**
 Before every LLM call, assembles full context:
@@ -118,11 +118,13 @@ For Phase 1 this is a simple text display with voice I/O as the primary interact
 A single interaction, end to end:
 
 ```
-User says "Chitra" (wake word) or presses spacebar (keyboard trigger)
+User input — one of two paths:
+  [Text mode]  → user types at terminal prompt → text returned directly
+  [Voice mode] → user speaks → VAD detects speech → Whisper STT → text
     ↓
-Voice I/O — microphone activates, captures speech, speech to text
+Voice I/O returns: {"text": string, "confidence": float}
     ↓
-Orchestration Core receives text
+Orchestration Core receives text (identical from both modes)
     ↓
 Context Assembly
   — Memory capability: fetch relevant personal context
@@ -141,9 +143,9 @@ LLM call — intent understanding + response/action decision
     ↓
 [If needed] → Second LLM call — formulate conversational response
     ↓
-Voice I/O — text to speech → speaker
+Voice I/O — text to speech → speaker (both modes)
     ↓
-Conversational Interface — display updated
+Conversational Interface — display updated (both modes)
 ```
 
 ---

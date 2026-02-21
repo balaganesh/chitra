@@ -108,11 +108,15 @@ Piper is chosen because it produces natural-sounding voice, runs entirely locall
 
 ---
 
-## Voice Activation
+## Input Modes
 
-**Wake word:** "Chitra" — user says the OS name to activate listening
-**Keyboard trigger:** Spacebar — fallback activation for Phase 1 and demo recording
-**Phase 1 implementation:** Keyboard trigger is primary for Phase 1 due to simplicity and reliability. Wake word detection is noted as a future phase item.
+Chitra supports two first-class input modes. Both are primary — text is not a fallback.
+
+**Text mode:** User types at a terminal prompt. Zero latency, always available. Preferred when voice is impractical, when STT latency is undesirable, or simply by user preference.
+
+**Voice mode:** User speaks, Chitra captures via microphone, transcribes via Whisper STT. Activation via spacebar (Phase 1) — press spacebar to begin speaking. Wake word detection ("Chitra") is a future phase item.
+
+The user can switch between modes at any time. The Orchestration Core receives identical text output from both modes.
 
 ---
 
@@ -196,7 +200,7 @@ All other capabilities initialize
 [First run] Onboarding conversation begins
 [Subsequent runs] Proactive loop starts, Chitra speaks greeting
     ↓
-System ready — listening for "Chitra" wake word or spacebar
+System ready — accepting input via text or voice mode
 ```
 
 No login prompt. No desktop. No shell visible to the user. The device boots directly into Chitra.

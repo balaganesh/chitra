@@ -15,21 +15,30 @@ All inputs and outputs are structured JSON. All data is stored locally on device
 
 ## Capability 1 — Voice I/O
 
-The conversational interface layer. Handles all audio input and output. This is the only way the user interacts with Chitra.
+The conversational interface layer. Handles all input and output — both voice and text. This is the only way the user interacts with Chitra.
+
+**Two input modes — both first-class:**
+
+- **Text mode** — user types at a terminal prompt. Zero latency, always available. This is not a fallback — it is a full, primary input method. Many users will prefer text, especially when voice latency is noticeable or when speaking is not practical.
+- **Voice mode** — user speaks, Chitra listens via microphone, transcribes via Whisper STT. Primary mode for hands-free and device use cases.
+
+The user can switch modes at any time — conversationally ("switch to text", "switch to voice") or via a keyboard shortcut. The Orchestration Core receives identical output from both modes and never knows or cares which mode produced the text.
 
 **Responsibilities**
-- Detect wake word "Chitra" or keyboard trigger (spacebar)
-- Capture microphone input
-- Detect when the user is speaking (voice activity detection)
-- Convert speech to text (STT)
-- Convert text to speech (TTS)
+- Accept text input from terminal prompt (text mode)
+- Capture microphone input and transcribe via STT (voice mode)
+- Detect when the user is speaking (voice activity detection, voice mode only)
+- Convert text to speech (TTS) — used in both modes for Chitra's spoken responses
 - Play audio response through speaker
-- Update the conversational display
+- Update the conversational display (rich terminal)
+- Manage input mode switching
 
 **Actions**
 
 `listen()`
-Activates microphone, detects speech, returns transcribed text when user finishes speaking.
+Returns user input as text. Behavior depends on current input mode:
+- **Text mode:** prompts user at terminal, returns typed text with confidence 1.0
+- **Voice mode:** activates microphone, detects speech via VAD, transcribes via Whisper STT
 ```json
 Input: none
 Output: {
@@ -39,7 +48,7 @@ Output: {
 ```
 
 `speak(text)`
-Converts text to speech and plays through speaker. Blocks until audio playback is complete.
+Converts text to speech and plays through speaker. In text mode, TTS still plays so Chitra has a voice even when the user is typing. Blocks until audio playback is complete.
 ```json
 Input: {
   "text": string
@@ -61,10 +70,23 @@ Output: {
 }
 ```
 
+`set_input_mode(mode)`
+Switches between text and voice input modes.
+```json
+Input: {
+  "mode": "text" | "voice"
+}
+Output: {
+  "status": "done",
+  "mode": "text" | "voice"
+}
+```
+
 **Technology**
-- STT: OpenAI Whisper (local, runs on device)
-- TTS: Piper TTS (local, runs on device, natural voice)
-- Voice activity detection: Silero VAD
+- STT: OpenAI Whisper (local, runs on device) — voice mode only
+- TTS: Piper TTS (local, runs on device, natural voice) — both modes
+- Voice activity detection: Silero VAD — voice mode only
+- Terminal display: rich library
 
 ---
 

@@ -167,9 +167,9 @@ python main.py
 
 **First run:** Chitra starts an onboarding conversation to learn about you. Answer the questions — this seeds the Memory capability with your initial context. Onboarding runs once only.
 
-**Subsequent runs:** Chitra boots directly into normal operation, speaks a greeting, and begins listening.
+**Subsequent runs:** Chitra boots directly into normal operation, speaks a greeting, and begins accepting input.
 
-**Activation:** Press spacebar to activate listening (Phase 1 keyboard trigger). Say what you need. Chitra responds.
+**Input modes:** Chitra starts in text mode by default — type at the terminal prompt. Switch to voice mode conversationally ("switch to voice") or via keyboard shortcut. In voice mode, press spacebar to begin speaking. Both modes are first-class.
 
 To exit:
 ```bash

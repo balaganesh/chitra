@@ -18,6 +18,7 @@ When Chitra boots for the first time it has no knowledge of the user. Before nor
 
 Onboarding covers:
 - User's name
+- Preferred input mode (text or voice)
 - A few key people in their life and their relationship
 - Basic work schedule and routine
 - Any immediate preferences the user wants Chitra to know
@@ -59,7 +60,7 @@ This scenario demonstrates: proactive behavior, memory of stated preferences, ta
 ## Phase 1 Capabilities — In Scope
 
 **Voice I/O**
-Speech to text from microphone input. Text to speech for all Chitra responses. This is the only human interface. Activation via wake word "Chitra" or keyboard trigger (spacebar) as fallback.
+Two first-class input modes: text (user types at terminal) and voice (microphone → Whisper STT). Both are primary — text is not a fallback. Users can switch freely between modes. Text to speech for all Chitra responses in both modes. This is the only human interface.
 
 **Contacts**
 Local contact store. Name, relationship type, phone, email, notes, last interaction date (user-noted). Queryable by the AI Orchestration Core.
@@ -93,11 +94,11 @@ Runs entirely on device via Ollama. Model: Llama 3.1 8B or Mistral 7B — final 
 - Security or encryption layer
 - App installation or any app framework of any kind
 - Natural language learning or model fine-tuning
-- Wake word detection (keyboard trigger is Phase 1 fallback)
+- Wake word detection (text input and spacebar activation are Phase 1 alternatives)
 
 ## Known Phase 1 Limitations
 
-**STT Latency:** Whisper introduces 1-3 seconds of processing time after the user speaks before Chitra responds. This is acceptable for Phase 1. Local model capabilities and speed are improving rapidly — the LLM client architecture allows model replacement as better options emerge.
+**STT Latency:** Whisper introduces 1-3 seconds of processing time after the user speaks before Chitra responds. This is acceptable for Phase 1. Users who prefer zero-latency input can use text mode at any time. Local model capabilities and speed are improving rapidly — the LLM client architecture allows model replacement as better options emerge.
 
 ## What Phase 1 Must Feel Like
 
@@ -114,7 +115,7 @@ If at any point during build a decision makes Chitra feel more like a voice-cont
 - All Phase 1 capabilities functional and stable
 - Local LLM running fully on device, no internet required
 - Conversational interface is the only interface
-- Wake word "Chitra" activates listening, keyboard trigger as fallback
+- Both text and voice input modes functional as first-class input methods
 - Code is clean, documented, and ready for open source publication under Apache 2.0
 - All documents complete and accurate
 

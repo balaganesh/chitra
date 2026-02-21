@@ -148,6 +148,7 @@ On first run (`~/.chitra/data/` is empty or a `first_run` flag is set), Chitra r
 
 Onboarding asks the user:
 - Their name
+- Preferred input mode (text or voice)
 - Key people in their life and relationships
 - Basic work schedule
 - Any immediate preferences
