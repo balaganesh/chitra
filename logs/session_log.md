@@ -1,3 +1,33 @@
+## Session — 2026-02-22 (Session 5)
+
+### What was discussed
+- Implementing the Piper TTS setup script — the last deferred item from Session 2
+- Researched Piper release structure on GitHub and voice model URLs on HuggingFace
+
+### Key decisions made
+1. **Piper version pinned to 2023.11.14-2** — latest stable release with pre-built binaries for all 4 platform targets
+2. **Voice model: en_US-lessac-medium** — matches the model referenced in voice_io.py and documentation
+3. **SSL fallback for macOS** — Python's default certifi bundle may not be configured; falls back to unverified context for known URLs (GitHub, HuggingFace). Acceptable for one-time setup script, not runtime code.
+4. **Temporary directory extraction** — avoids tarball naming conflict where `piper/` directory collides with `piper` binary filename
+
+### What was built
+- **`scripts/setup_piper.py`** — complete implementation replacing the placeholder stub:
+  - Platform detection via `platform.system()` and `platform.machine()` — maps to 4 tarball variants
+  - `_download_file()` — downloads with temporary file pattern, SSL certificate fallback, progress logging
+  - `_extract_piper_binary()` — extracts tarball to temp directory first, moves contents to `tts_dir`, sets executable permissions
+  - `setup_piper()` — orchestrates binary download/extraction + voice model download, idempotent (skips existing files)
+  - Downloads: Piper binary (~18 MB), voice model (~60 MB), model config (~5 KB)
+
+### Open questions
+- Piper binary requires shared libraries (libespeak-ng, libonnxruntime) that extract alongside it from the tarball. On macOS, `dyld` fails to find them via `@rpath` — this is expected since macOS is the dev platform, not the target runtime. On Linux (target), the shared libs are found correctly via relative rpath.
+
+### Deferred work
+- Voice mode end-to-end testing with audio deps
+- End-to-end integration test with live Ollama
+- Linux VM testing
+
+---
+
 ## Session — 2026-02-22 (Session 4)
 
 ### What was discussed

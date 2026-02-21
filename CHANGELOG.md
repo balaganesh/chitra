@@ -1,3 +1,26 @@
+## 2026-02-22 — Session 5
+
+### Added
+- **`scripts/setup_piper.py`** — full implementation replacing stub: downloads Piper TTS binary from GitHub releases and `en_US-lessac-medium` voice model from HuggingFace
+  - Platform detection: macOS (arm64, x86_64) and Linux (x86_64, aarch64)
+  - SSL certificate fallback for macOS (Python certifi may not be configured)
+  - Idempotent — skips files that already exist, safe to re-run
+  - Temporary directory extraction to avoid tarball naming conflicts
+  - Progress logging, cleanup of tarballs after extraction
+
+### Changed
+- Nothing
+
+### Fixed
+- Nothing
+
+### Deferred
+- Voice mode end-to-end testing with audio deps
+- End-to-end integration test with live Ollama
+- Linux VM testing
+
+---
+
 ## 2026-02-22 — Session 4
 
 ### Added
@@ -13,7 +36,7 @@
 - Nothing
 
 ### Deferred
-- Piper TTS binary download in setup_piper.py
+- ~~Piper TTS binary download in setup_piper.py~~ (done in Session 5)
 - Voice mode end-to-end testing with audio deps
 - End-to-end integration test with live Ollama
 - Linux VM testing

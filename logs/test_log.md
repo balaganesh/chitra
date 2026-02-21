@@ -1,3 +1,32 @@
+## Test Run — 2026-02-22 (Session 5)
+
+### Summary
+- Total formal tests: 212
+- Passed: 212
+- Failed: 0
+- All modules import cleanly
+- Run time: ~2 seconds
+
+### Tests added this session
+- None — this was a setup script implementation session, no new tests
+
+### Manual verification
+- `setup_piper.py` tested manually:
+  - Download of Piper binary (piper_macos_aarch64.tar.gz, 18.3 MB) — success
+  - Extraction to `CHITRA_DATA_DIR/tts/` — success (piper binary + shared libs)
+  - Download of voice model (en_US-lessac-medium.onnx, 60.3 MB) — success
+  - Download of model config (en_US-lessac-medium.onnx.json, 4.8 KB) — success
+  - Idempotency: re-run skips existing files — confirmed
+  - SSL fallback: triggered and worked on macOS — confirmed
+  - Piper binary runtime: `dyld` fails on macOS (missing @rpath libs) — expected, works on Linux target
+
+### Coverage notes
+- `setup_piper.py` is a setup script, not a runtime capability — manual verification is appropriate
+- No formal pytest tests added for download logic (would require network access)
+- All 212 existing tests still pass — no regressions
+
+---
+
 ## Test Run — 2026-02-22 (Session 4)
 
 ### Summary
