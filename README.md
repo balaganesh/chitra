@@ -22,7 +22,7 @@ This is not a voice assistant bolted onto a traditional OS. The GUI shell, the a
 
 **Local first.** Intelligence and data live on the device. No cloud. No API keys. No subscription. No data leaving your hands.
 
-**AI as primitive.** Every capability is built to be consumed by AI — not by a human pressing a button. Telephony, reminders, contacts, memory — these are OS primitives, not apps.
+**AI as primitive.** Every capability is built to be consumed by AI — not by a human pressing a button. Reminders, contacts, calendar, memory — these are OS primitives, not apps.
 
 **Memory.** Chitra knows you. Your people, your preferences, your routines. Stored privately on device. Referenced naturally in conversation. Over time, Chitra doesn't just respond — it anticipates.
 
@@ -30,43 +30,67 @@ This is not a voice assistant bolted onto a traditional OS. The GUI shell, the a
 
 ---
 
-## Phase 1 — Proof of Concept
-
-Phase 1 builds a working, demonstrable version of Chitra on Linux hardware. The goal is a recorded demo that makes a viewer feel they are seeing a fundamentally different kind of computing.
-
-**Phase 1 capabilities:**
-- Voice I/O — speech to text, text to speech, conversational display
-- Contacts — local store of people and relationships
-- Calendar — events and schedule
-- Reminders & Alarms — time-based triggers surfaced conversationally
-- Tasks — things to do, referenced proactively
-- Memory — the personal knowledge layer, injected into every AI call
-- System State — time, date, battery
-
-**Phase 1 constraints:**
-- Runs entirely on Linux, no internet dependency
-- Local LLM via Ollama (Llama 3.1 8B / Mistral 7B)
-- No telephony, no media, no web access — contained and deep
-
----
-
 ## Architecture
 
 ```
 ┌─────────────────────────────────────┐
-│       Conversational Interface      │
+│       Conversational Interface      │  Voice or text — the only interface
 ├─────────────────────────────────────┤
-│       AI Orchestration Core         │
+│       AI Orchestration Core         │  Context assembly, LLM reasoning, action dispatch
 ├─────────────────────────────────────┤
-│         Capability Modules          │
+│         Capability Modules          │  7 independent modules with clean APIs
 ├─────────────────────────────────────┤
-│       Hardware Abstraction          │
+│       Hardware Abstraction          │  Audio, storage, system state
 ├─────────────────────────────────────┤
-│          Linux Kernel               │
+│          Linux Kernel               │  Ubuntu Server 24.04 LTS
 └─────────────────────────────────────┘
 ```
 
 Full architecture documentation in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+
+---
+
+## Capabilities
+
+All 7 Phase 1 capabilities are implemented:
+
+| Capability | Description |
+|---|---|
+| **Voice I/O** | Two first-class input modes (text and voice), Piper TTS, Silero VAD + Whisper STT, rich terminal display |
+| **Memory** | Personal knowledge layer — facts, preferences, relationships, observations. Injected into every LLM call |
+| **Contacts** | Local contact store with relationships, interaction tracking, neglected contact detection |
+| **Calendar** | Events with participants, time-based queries, proactive surfacing |
+| **Reminders** | Time-based triggers, fired detection for proactive loop, dismissal |
+| **Tasks** | Priority-based task management, overdue detection, due-today queries |
+| **System State** | Cross-platform battery reading, time-of-day classification |
+
+---
+
+## Orchestration Layer
+
+The brain of Chitra — fully implemented:
+
+- **Orchestration Core** — boot sequence, conversation loop, action dispatch with method introspection, memory storage, conversation history sliding window, clean shutdown
+- **Context Assembly** — assembles Memory + System State + Calendar + Reminders into a structured system prompt for every LLM call, includes capability catalog
+- **Proactive Loop** — 60-second background tick checking fired reminders, upcoming events, neglected contacts, overdue tasks; lightweight LLM call to decide what's worth surfacing
+- **LLM Client** — Ollama HTTP interface with 3-tier JSON parsing, retry with correction prompt, safe fallback response
+- **Onboarding Flow** — 5-step conversational first-run setup (name, input mode, key people, work schedule, preferences); marker file for first-boot detection
+
+---
+
+## Tech Stack
+
+| Component | Technology |
+|---|---|
+| Language | Python 3.11+, asyncio |
+| Local LLM | Ollama (Llama 3.1 8B / Mistral 7B) |
+| Speech-to-Text | OpenAI Whisper (local) |
+| Text-to-Speech | Piper TTS |
+| Voice Activity Detection | Silero VAD |
+| Audio I/O | sounddevice |
+| Data Storage | SQLite (one DB per capability) |
+| Terminal Display | rich |
+| Testing | pytest, pytest-asyncio |
 
 ---
 
@@ -86,7 +110,72 @@ python scripts/setup_storage.py
 python main.py
 ```
 
-Requires Python 3.11+, Ollama, and a Linux or macOS environment.
+Requires Python 3.11+ and Ollama. Audio dependencies (whisper, sounddevice, torch) are optional — text mode works without them.
+
+---
+
+## Configuration
+
+All configuration via environment variables (see `.env.example`):
+
+| Variable | Default | Description |
+|---|---|---|
+| `CHITRA_DATA_DIR` | `~/.chitra/data` | Storage directory for all capability databases |
+| `CHITRA_LLM_MODEL` | `llama3.1:8b` | Ollama model name — swap models without code changes |
+| `CHITRA_WHISPER_MODEL` | `base` | Whisper STT model size (base, small, medium) |
+| `CHITRA_INPUT_MODE` | `text` | Default input mode (text or voice) |
+| `CHITRA_PROACTIVE_INTERVAL` | `60` | Proactive loop tick interval in seconds |
+| `CHITRA_HISTORY_TURNS` | `10` | Conversation history turns included in LLM context |
+
+---
+
+## Project Structure
+
+```
+chitra/
+  main.py                       # Entry point — boots Orchestration Core
+  orchestration/
+    core.py                     # AI Orchestration Core — the brain
+    context.py                  # Context assembly for LLM calls
+    proactive.py                # Proactive background loop
+  capabilities/
+    voice_io.py                 # Voice I/O (text + voice input, TTS, display)
+    memory.py                   # Memory — the personal knowledge layer
+    contacts.py                 # Contacts capability
+    calendar.py                 # Calendar capability
+    reminders.py                # Reminders capability
+    tasks.py                    # Tasks capability
+    system_state.py             # System State capability
+  llm/
+    client.py                   # Ollama LLM interface
+    prompts.py                  # System prompts and capability catalog
+  storage/
+    schema.py                   # SQLite schema definitions
+  onboarding/
+    flow.py                     # First-run onboarding conversation
+  scripts/
+    setup_piper.py              # Piper TTS setup
+    setup_storage.py            # Storage initialization
+  tests/
+    test_orchestration.py       # Orchestration + LLM + context tests (54 tests)
+    test_onboarding.py          # Onboarding flow tests (26 tests)
+    test_capabilities.py        # Capability test stubs
+    test_memory.py              # Memory test stubs
+  docs/                         # Architecture and design documentation
+```
+
+---
+
+## Tests
+
+80 tests, all passing:
+
+```bash
+source venv/bin/activate
+python3 -m pytest tests/ -v
+```
+
+Coverage includes Orchestration Core, Proactive Loop, Context Assembly, LLM Client, Prompts, and Onboarding Flow. Voice mode end-to-end and live Ollama integration are deferred to runtime testing.
 
 ---
 
@@ -97,7 +186,7 @@ Requires Python 3.11+, Ollama, and a Linux or macOS environment.
 | [VISION.md](docs/VISION.md) | The why — principles and philosophy |
 | [ARCHITECTURE.md](docs/ARCHITECTURE.md) | System architecture and interaction flows |
 | [CAPABILITIES.md](docs/CAPABILITIES.md) | Capability module API contracts |
-| [MEMORY_DESIGN.md](docs/MEMORY_DESIGN.md) | Memory layer design |
+| [MEMORY_DESIGN.md](docs/MEMORY_DESIGN.md) | Memory layer design and context window rules |
 | [TECH_STACK.md](docs/TECH_STACK.md) | Technology choices and rationale |
 | [PHASE1_SCOPE.md](docs/PHASE1_SCOPE.md) | Phase 1 scope and demo acceptance criteria |
 | [DEV_SETUP.md](docs/DEV_SETUP.md) | Development environment setup |
@@ -112,4 +201,4 @@ Apache 2.0 — see [LICENSE](LICENSE).
 
 ## Status
 
-🟡 **Pre-development** — Architecture and documentation complete. Build starting.
+🟢 **Phase 1 — Core implementation complete.** All 7 capabilities, orchestration layer, LLM client, proactive loop, and onboarding flow are built and tested. Pending: end-to-end integration testing with live Ollama, voice mode testing with audio dependencies, and Linux VM validation.
