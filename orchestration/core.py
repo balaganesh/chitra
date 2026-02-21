@@ -189,7 +189,9 @@ class OrchestrationCore:
             system_prompt = context["system_prompt"]
 
             # First LLM call — understand intent and decide action
-            llm_response = await self.llm.call(system_prompt, user_text)
+            llm_response = await self.llm.call(
+                system_prompt, user_text, self.conversation_history
+            )
 
             response_text = llm_response.get("response", "")
             action = llm_response.get("action")
@@ -210,7 +212,7 @@ class OrchestrationCore:
                     )
 
                     followup_response = await self.llm.call(
-                        system_prompt, followup_message
+                        system_prompt, followup_message, self.conversation_history
                     )
                     response_text = followup_response.get("response", response_text)
 

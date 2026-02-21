@@ -13,7 +13,7 @@ The assembled system prompt is what makes the LLM "know" the user on every call.
 
 import logging
 
-from llm.prompts import SYSTEM_IDENTITY, RESPONSE_FORMAT_INSTRUCTION
+from llm.prompts import CAPABILITY_CATALOG, SYSTEM_IDENTITY, RESPONSE_FORMAT_INSTRUCTION
 
 logger = logging.getLogger(__name__)
 
@@ -72,6 +72,9 @@ class ContextAssembler:
             if reminders_block:
                 sections.append(reminders_block)
 
+            # Capability catalog — tells the LLM exactly what actions exist
+            sections.append(CAPABILITY_CATALOG)
+
             # Response format instruction — always last in system prompt
             sections.append(RESPONSE_FORMAT_INSTRUCTION)
 
@@ -84,9 +87,9 @@ class ContextAssembler:
 
         except Exception as e:
             logger.error("Context assembly failed: %s", e)
-            # Minimal fallback — identity + format only, so the LLM can still respond
+            # Minimal fallback — identity + catalog + format, so the LLM can still respond
             return {
-                "system_prompt": f"{SYSTEM_IDENTITY}\n\n{RESPONSE_FORMAT_INSTRUCTION}",
+                "system_prompt": f"{SYSTEM_IDENTITY}\n\n{CAPABILITY_CATALOG}\n\n{RESPONSE_FORMAT_INSTRUCTION}",
                 "conversation_history": conversation_history,
             }
 

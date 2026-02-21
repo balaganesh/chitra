@@ -304,7 +304,13 @@ class VoiceIO:
             logger.info("Silero VAD model loaded")
 
     def _load_silero_vad(self):
-        """Load Silero VAD model. Blocking — called via asyncio.to_thread."""
+        """Load Silero VAD model. Blocking — called via asyncio.to_thread.
+
+        NOTE: torch.hub.load may attempt a network fetch on first run if
+        the model is not cached locally. For Phase 1 local-only operation,
+        the VAD model must be pre-cached during setup. A future improvement
+        is to use the silero-vad pip package which bundles the model locally.
+        """
         model, utils = torch.hub.load(
             repo_or_dir="snakers4/silero-vad",
             model="silero_vad",

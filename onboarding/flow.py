@@ -184,9 +184,8 @@ class OnboardingFlow:
 
         except Exception as e:
             logger.error("Onboarding flow failed: %s", e)
-            # Even if onboarding partially fails, mark it complete
-            # to prevent re-running on every boot
-            self._mark_complete()
+            # Do NOT mark complete on failure — onboarding should retry
+            # on next boot so the user gets a fully seeded Memory
 
     async def _process_input_mode(self, answer: str):
         """Process the user's input mode preference.

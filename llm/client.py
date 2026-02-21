@@ -38,11 +38,21 @@ class LLMClient:
 
         logger.info("LLM client initialized — model: %s, url: %s", self.model, self.base_url)
 
-    async def call(self, system_prompt: str, user_message: str) -> dict:
+    async def call(
+        self,
+        system_prompt: str,
+        user_message: str,
+        conversation_history: list[dict] | None = None,
+    ) -> dict:
         """Send a prompt to the local LLM and return parsed structured JSON.
 
         Implements retry with correction prompt on malformed JSON.
         Falls back to a safe conversational response on persistent failure.
+
+        Args:
+            system_prompt: the assembled system prompt (identity + context)
+            user_message: the current user input
+            conversation_history: prior conversation turns for multi-turn continuity
 
         Returns:
             {
@@ -52,10 +62,13 @@ class LLMClient:
                 "memory_store": list
             }
         """
-        messages = [
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_message},
-        ]
+        messages = [{"role": "system", "content": system_prompt}]
+
+        # Include conversation history for multi-turn continuity
+        if conversation_history:
+            messages.extend(conversation_history)
+
+        messages.append({"role": "user", "content": user_message})
 
         # First attempt
         raw_text = await self._send(messages)

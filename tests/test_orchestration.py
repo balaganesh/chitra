@@ -447,6 +447,17 @@ class TestContextAssembly:
         result = core.context_assembler._format_upcoming_reminders([])
         assert result == ""
 
+    @pytest.mark.asyncio
+    async def test_assemble_includes_capability_catalog(self, core):
+        """System prompt includes capability catalog so LLM knows available actions."""
+        result = await core.context_assembler.assemble([])
+        prompt = result["system_prompt"]
+        assert "contacts:" in prompt
+        assert "calendar:" in prompt
+        assert "reminders:" in prompt
+        assert "tasks:" in prompt
+        assert "Only use actions from this catalog" in prompt
+
 
 # ── LLM Client Tests ─────────────────────────────────────────────
 
@@ -541,6 +552,18 @@ class TestPrompts:
     def test_correction_prompt(self):
         """CORRECTION_PROMPT exists and mentions JSON."""
         assert "JSON" in CORRECTION_PROMPT
+
+    def test_capability_catalog_exists(self):
+        """CAPABILITY_CATALOG lists all capabilities and their actions."""
+        from llm.prompts import CAPABILITY_CATALOG
+
+        assert "contacts:" in CAPABILITY_CATALOG
+        assert "calendar:" in CAPABILITY_CATALOG
+        assert "reminders:" in CAPABILITY_CATALOG
+        assert "tasks:" in CAPABILITY_CATALOG
+        assert "memory:" in CAPABILITY_CATALOG
+        assert "voice_io:" in CAPABILITY_CATALOG
+        assert "Only use actions from this catalog" in CAPABILITY_CATALOG
 
     def test_proactive_prompt_template(self):
         """PROACTIVE_PROMPT_TEMPLATE contains format placeholder and should_speak."""

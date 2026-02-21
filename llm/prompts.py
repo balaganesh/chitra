@@ -19,6 +19,45 @@ unless they ask. Use your knowledge of the user to inform your behavior quietly.
 
 If you don't know something, say so honestly. Never fabricate information."""
 
+# Catalog of available capabilities and their actions — injected into every
+# system prompt so the LLM knows exactly what it can do (and nothing more)
+CAPABILITY_CATALOG = """Available capabilities and actions you can call:
+
+contacts:
+  - get(name) — find a contact by name or partial name
+  - list() — return all contacts
+  - create(contact) — create a new contact {name, relationship, phone, email, notes, communication_preference}
+  - update(id, fields) — update fields on a contact
+  - note_interaction(id) — mark that the user interacted with this contact today
+
+calendar:
+  - get_upcoming(hours_ahead) — events within the next N hours
+  - get_today() — all events for today
+  - create(event) — create an event {title, date, time, duration_minutes, notes, participants}
+  - get_range(start_date, end_date) — events within a date range
+
+reminders:
+  - create(reminder) — create a reminder {text, trigger_at, repeat, contact_id}
+  - list_upcoming(hours_ahead) — pending reminders due within N hours
+  - dismiss(id) — dismiss a reminder
+  - delete(id) — delete a reminder
+
+tasks:
+  - create(task) — create a task {title, notes, due_date, priority}
+  - list(status) — list tasks by status: "pending", "done", or "all"
+  - complete(id) — mark a task as done
+  - get_overdue() — pending tasks past their due date
+  - get_due_today() — pending tasks due today
+
+memory:
+  - search(query) — search memories by topic
+  - store(entry) — store a new memory {category, subject, content, confidence, source}
+
+voice_io:
+  - set_input_mode(mode) — switch between "text" and "voice" input modes
+
+Only use actions from this catalog. Do not invent actions or capabilities that are not listed."""
+
 # The JSON structure the LLM must return on every call
 RESPONSE_FORMAT_INSTRUCTION = """You must respond with ONLY valid JSON in this exact format:
 {

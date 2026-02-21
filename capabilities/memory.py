@@ -143,19 +143,12 @@ class Memory:
                 "SELECT * FROM memories WHERE active = 1 ORDER BY category, created_at"
             ).fetchall()
 
-            # Update last_referenced for entries we're about to include
-            conn.execute(
-                "UPDATE memories SET last_referenced = ? WHERE active = 1",
-                (now.isoformat(),),
-            )
-            conn.commit()
-            conn.close()
-
-            # Apply context window rules
+            # Apply context window rules — only include entries that pass filters
             preferences = []
             facts = []
             relationships = []
             observations = []
+            included_ids = []
 
             for row in rows:
                 entry = self._row_to_dict(row)
@@ -166,16 +159,19 @@ class Memory:
                 if category == "preference":
                     # Always include all preferences
                     preferences.append(entry)
+                    included_ids.append(entry["id"])
 
                 elif category == "fact":
                     # Include facts with confidence >= 0.8
                     if confidence >= 0.8:
                         facts.append(entry)
+                        included_ids.append(entry["id"])
 
                 elif category == "relationship":
                     # Include relationships referenced within 30 days
                     if last_ref >= thirty_days_ago:
                         relationships.append(entry)
+                        included_ids.append(entry["id"])
 
                 elif category == "observation":
                     # Skip low-confidence observations older than 60 days
@@ -184,6 +180,20 @@ class Memory:
                     # Include observations with confidence >= 0.5
                     if confidence >= 0.5:
                         observations.append(entry)
+                        included_ids.append(entry["id"])
+
+            # Update last_referenced ONLY for entries actually included
+            # This ensures aging/recency rules work correctly — entries not
+            # included will naturally age out over time
+            if included_ids:
+                placeholders = ",".join("?" for _ in included_ids)
+                conn.execute(
+                    f"UPDATE memories SET last_referenced = ? WHERE id IN ({placeholders})",
+                    [now.isoformat()] + included_ids,
+                )
+                conn.commit()
+
+            conn.close()
 
             # Build the context block as structured natural language
             context_block = self._format_context_block(preferences, facts, relationships, observations)
