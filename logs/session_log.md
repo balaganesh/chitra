@@ -28,3 +28,48 @@
 - All capability implementations (starting next session, Memory first)
 - Piper TTS download logic in setup_piper.py
 - Full test implementations
+
+---
+
+## Session — 2026-02-21 (Session 2)
+
+### What was discussed
+- Text input should be a first-class input mode, not a fallback — users often prefer typing
+- In text mode, Chitra displays responses only — no TTS audio
+- Onboarding should ask preferred input mode (text or voice)
+- Introduced `CHITRA_WHISPER_MODEL` env var for configurable Whisper model size
+- SSH key setup for GitHub push access
+
+### Key decisions made
+1. **Text input is first-class** — equal to voice, not a fallback. Updated all 6 docs.
+2. **TTS behavior per mode** — voice mode: speak + display. Text mode: display only.
+3. **Default input mode is text** — configurable, stored as user preference after onboarding.
+4. **Whisper model configurable** — `CHITRA_WHISPER_MODEL` env var, default "base".
+5. **Audio deps are optional** — Voice I/O gracefully degrades to text-only when audio libs are missing.
+
+### What was built
+- **All 7 capabilities fully implemented:**
+  - `Memory` — SQLite-backed, store/get_context/search/update/deactivate with MEMORY_DESIGN.md context window rules
+  - `System State` — cross-platform battery (Linux /sys + macOS pmset), time_of_day classification
+  - `Contacts` — CRUD + get_neglected for proactive loop, case-insensitive search
+  - `Calendar` — CRUD + get_upcoming/get_today with datetime comparison
+  - `Reminders` — CRUD + get_fired/dismiss for proactive loop
+  - `Tasks` — CRUD + get_overdue/get_due_today, priority validation
+  - `Voice I/O` — text mode (asyncio.to_thread input), voice mode (sounddevice + Silero VAD + Whisper STT), TTS (Piper subprocess), rich terminal display. Lazy model loading, optional deps with graceful degradation.
+- **Documentation updates** — 6 docs updated for text input as first-class mode
+- **New config** — `CHITRA_WHISPER_MODEL` and `CHITRA_INPUT_MODE` added to .env.example and CLAUDE.md
+- **SSH key setup** — generated ed25519 key, configured for GitHub push
+- **.gitignore** — added for Python/venv/macOS artifacts
+
+### Open questions
+- Silero VAD API: current implementation uses `torch.hub.load`. The `silero-vad==5.1` pip package may provide a simpler API (`from silero_vad import load_silero_vad`). Should be verified when audio deps are installed.
+- Piper TTS sample rate (22050 Hz) is hardcoded for the lessac model — may need adjustment for other voice models.
+
+### Deferred work
+- LLM client implementation (Ollama interface)
+- Orchestration Core implementation (context assembly, main loop, action dispatch)
+- Proactive loop implementation
+- Onboarding flow implementation
+- Piper TTS download logic in setup_piper.py
+- Full test implementations
+- Voice mode end-to-end testing (requires audio deps installed)
