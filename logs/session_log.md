@@ -1,3 +1,53 @@
+## Session — 2026-02-21 (Session 3)
+
+### What was discussed
+- Building the full orchestration layer: LLM Client, Context Assembly, Orchestration Core, Proactive Loop, Onboarding Flow
+- No new architectural decisions required — all design was established in Sessions 1-2
+
+### Key decisions made
+1. **Action dispatch uses introspection** — `execute_action()` inspects method signatures to distinguish single-dict methods (e.g. `create(task)`) from keyword-argument methods (e.g. `get(name=...)`)
+2. **Proactive prompt template** — added `PROACTIVE_PROMPT_TEMPLATE` to `llm/prompts.py` with `should_speak` field for the LLM to decide if something is worth surfacing
+3. **Onboarding uses marker file** — `.onboarding_complete` in data dir for first-boot detection (simpler and more reliable than checking Memory contents)
+4. **Input mode detection** — onboarding detects text/voice preference from natural language keywords in the user's answer
+5. **Proactive loop auto-dismisses reminders** — after surfacing fired reminders, they are automatically dismissed so they don't fire again on the next tick
+6. **Neglected contacts capped at 3** — proactive loop limits to top 3 neglected contacts to avoid overwhelming the LLM
+
+### What was built
+- **LLM Client** (`llm/client.py`) — full Ollama HTTP interface via httpx, 3-tier JSON parsing (direct → markdown extraction → brace matching), retry with correction prompt (max 2), safe fallback response
+- **Context Assembly** (`orchestration/context.py`) — gathers Memory + System State + Calendar + Reminders, builds structured system prompt with natural language sections, error fallback
+- **Orchestration Core** (`orchestration/core.py`) — the brain:
+  - Boot sequence: input mode → onboarding check → proactive loop → conversation loop
+  - Conversation loop: listen → context → LLM → action dispatch → second LLM (if action) → memory store → display + speak
+  - Action dispatch with method signature introspection
+  - Conversation history sliding window (configurable turns)
+  - Clean shutdown with proactive loop cancellation
+- **Proactive Loop** (`orchestration/proactive.py`) — 60s background tick:
+  - Gathers fired reminders, upcoming events, neglected contacts, overdue tasks
+  - Lightweight LLM call to decide what's worth surfacing
+  - Respects `is_user_active` flag
+  - Auto-dismisses fired reminders after surfacing
+- **Onboarding Flow** (`onboarding/flow.py`) — first-run conversational onboarding:
+  - 5 questions: name, input mode, key people, work schedule, preferences
+  - Stores all answers to Memory (confidence 1.0, source "stated")
+  - Natural language input mode detection
+  - Empty answer detection for optional questions
+  - Summary generation at end
+  - Marker file for first-boot detection
+- **Proactive Prompt** (`llm/prompts.py`) — added `PROACTIVE_PROMPT_TEMPLATE`
+- **78 pytest tests** across `test_orchestration.py` and `test_onboarding.py` — all passing
+
+### Open questions
+- End-to-end testing with actual Ollama LLM is not covered by unit tests — requires Ollama running locally
+- The full `handle_input()` pipeline (context → LLM → action → response) is not tested end-to-end because it requires a live LLM connection
+
+### Deferred work
+- Piper TTS binary download in setup_piper.py
+- Voice mode end-to-end testing with audio deps
+- End-to-end integration test with live Ollama
+- Linux VM testing
+
+---
+
 ## Session — 2026-02-21
 
 ### What was discussed

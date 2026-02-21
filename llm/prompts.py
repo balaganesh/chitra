@@ -44,6 +44,29 @@ Set "action" to null if no capability needs to be called.
 Set "memory_store" to an empty array if nothing new should be stored.
 Respond with ONLY the JSON object, no other text."""
 
+# Proactive loop prompt — sent as the user message when the proactive loop
+# detects something that might be worth surfacing
+PROACTIVE_PROMPT_TEMPLATE = """You are running a background check. The following things have come up:
+
+{context}
+
+Based on this context and what you know about the user, decide if there is anything
+worth telling the user right now. Not everything needs to be mentioned — only surface
+things that are timely, important, or would genuinely help the user.
+
+If there IS something worth saying, set "should_speak" to true and write a natural,
+warm conversational message in "response". Keep it brief and human — don't list everything.
+If there is NOTHING worth surfacing right now, set "should_speak" to false.
+
+Respond with ONLY valid JSON:
+{{
+  "should_speak": true | false,
+  "response": "your message to the user (only if should_speak is true)",
+  "intent": "proactive",
+  "action": null,
+  "memory_store": []
+}}"""
+
 # Correction prompt sent on malformed JSON retry
 CORRECTION_PROMPT = """Your previous response was not valid JSON. Please respond with ONLY
 a valid JSON object in the exact format specified in the system prompt.

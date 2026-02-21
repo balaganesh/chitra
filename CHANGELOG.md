@@ -1,3 +1,28 @@
+## 2026-02-21 — Session 3
+
+### Added
+- **LLM Client** (`llm/client.py`) — full Ollama HTTP interface with robust 3-tier JSON parsing, retry with correction prompt, safe fallback response
+- **Context Assembly** (`orchestration/context.py`) — assembles Memory, System State, Calendar, and Reminders into structured system prompt for every LLM call
+- **Orchestration Core** (`orchestration/core.py`) — full implementation: boot sequence, conversation loop, action dispatch with method introspection, memory storage, conversation history sliding window, clean shutdown
+- **Proactive Loop** (`orchestration/proactive.py`) — 60s background tick checking fired reminders, upcoming events, neglected contacts, overdue tasks; lightweight LLM call for surfacing decisions; auto-dismisses fired reminders
+- **Onboarding Flow** (`onboarding/flow.py`) — 5-step conversational onboarding (name, input mode, key people, work schedule, preferences); marker file for first-boot detection; natural language input mode detection
+- **Proactive prompt template** (`llm/prompts.py`) — `PROACTIVE_PROMPT_TEMPLATE` for proactive loop LLM calls
+- **78 pytest tests** — comprehensive coverage for OrchestrationCore, ProactiveLoop, ContextAssembly, LLMClient, Prompts, and OnboardingFlow
+
+### Changed
+- Nothing
+
+### Fixed
+- Nothing
+
+### Deferred
+- Piper TTS binary download in setup_piper.py
+- Voice mode end-to-end testing with audio deps
+- End-to-end integration test with live Ollama
+- Linux VM testing
+
+---
+
 ## 2026-02-21 — Session 2
 
 ### Added

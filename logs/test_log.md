@@ -1,3 +1,40 @@
+## Test Run — 2026-02-21 (Session 3)
+
+### Summary
+- Total formal tests: 78
+- Passed: 78
+- Failed: 0
+- All 14 modules import cleanly
+- Smoke tests: 43 checks passed across 5 inline scripts
+
+### Tests added this session
+
+**`tests/test_orchestration.py`** — 52 tests across 5 classes:
+- **TestOrchestrationCore** (17 tests) — initialization, capability dispatch table, initial state, update_history (stores + trims), execute_action (contacts create/get/list, tasks, reminders, calendar, unknown capability, unknown action, missing fields), store_memories (valid entries, invalid entries, empty list)
+- **TestProactiveLoop** (9 tests) — initialization, custom interval, gather empty context, gather overdue tasks, gather fired reminders, gather neglected contacts, tick skips when user active, tick no data, dismiss fired reminders
+- **TestContextAssembly** (12 tests) — assemble basic, includes identity, includes format, includes system state, includes memory, preserves history, format system state (normal + error), format upcoming events (normal + empty), format upcoming reminders (normal + empty)
+- **TestLLMClient** (9 tests) — initialization, parse valid JSON, parse JSON in markdown, parse JSON with surrounding text, parse missing response field, parse invalid JSON, validate fills defaults, validate rejects non-dict, fallback response
+- **TestPrompts** (5 tests) — system identity, response format instruction, correction prompt, proactive prompt template, proactive prompt formats
+
+**`tests/test_onboarding.py`** — 26 tests:
+- **TestOnboarding** — should_run first boot, should_run after complete, mark_complete creates file, marker path, step count (5), all topics covered, step required fields, valid memory categories, format_name, format_input_mode, format_key_people, format_work_schedule, process_input_mode (text/keyboard/default), is_empty_answer (6 variants), build_summary (with memories/skips name/empty/no name)
+
+### Smoke tests run this session
+- **LLM Client** — initialization, JSON parsing (3 strategies), validation, fallback. 10 checks passed.
+- **Context Assembly** — assemble with seeded data, system prompt includes identity + memory + state + format. All checks passed.
+- **Orchestration Core** — initialization (9 capability checks), dispatch table (6 entries), history management, execute_action (contacts/tasks/reminders/calendar + error cases), store_memories (valid + invalid). 12 checks passed.
+- **Proactive Loop** — initialization, gather context (empty + overdue tasks + neglected contacts + fired reminders), tick (no data + user active), dismiss fired reminders, prompt template formatting. 9 checks passed.
+- **Onboarding Flow** — should_run, mark_complete, is_empty_answer, build_summary, process_input_mode, step count, format_content lambdas. 10 checks passed.
+
+### Coverage notes
+- `handle_input()` full pipeline (context → LLM → action → second LLM → memory) not tested end-to-end — requires live Ollama instance
+- `_conversation_loop()` and `run()` not tested — require mocked Voice I/O and LLM
+- Voice mode pipeline not tested — requires audio deps
+- Piper TTS not tested — requires binary
+- ProactiveLoop `tick()` with LLM call not tested — requires live Ollama
+
+---
+
 ## Test Run — 2026-02-21 (Session 2)
 
 ### Summary
