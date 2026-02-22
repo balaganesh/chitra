@@ -224,9 +224,12 @@ class VoiceIO:
                 logger.info("Audio unavailable — skipping playback")
                 return {"status": "done"}
 
-            await asyncio.to_thread(self._speak_blocking, text)
+            spoke = await asyncio.to_thread(self._speak_blocking, text)
 
-            logger.info("Spoke: %s", text[:80])
+            if spoke:
+                logger.info("Spoke: %s", text[:80])
+            else:
+                logger.warning("TTS failed for: %s", text[:80])
             return {"status": "done"}
 
         except Exception as e:
@@ -468,15 +471,16 @@ class VoiceIO:
 
     # ── TTS pipeline ────────────────────────────────────────────────
 
-    def _speak_blocking(self, text: str):
+    def _speak_blocking(self, text: str) -> bool:
         """Run TTS and play the output. Blocking — called via asyncio.to_thread.
 
         Production path: Piper TTS subprocess → raw PCM → sounddevice playback.
         Dev fallback: macOS `say` command when Piper is unavailable (not for production).
+
+        Returns True if speech was produced, False on failure.
         """
         if self._dev_tts_fallback and not self._tts_available:
-            self._speak_dev_fallback(text)
-            return
+            return self._speak_dev_fallback(text)
 
         try:
             process = subprocess.run(
@@ -492,15 +496,16 @@ class VoiceIO:
 
             if process.returncode != 0:
                 logger.error(
-                    "Piper TTS failed: %s",
+                    "Piper TTS failed (exit %d): %s",
+                    process.returncode,
                     process.stderr.decode("utf-8", errors="replace"),
                 )
-                return
+                return False
 
             raw_audio = process.stdout
             if not raw_audio:
                 logger.warning("Piper produced no audio output")
-                return
+                return False
 
             # Piper raw output: 16-bit signed PCM, mono
             # Sample rate depends on model (22050 Hz for lessac model)
@@ -510,28 +515,36 @@ class VoiceIO:
 
             sd.play(audio_float, samplerate=piper_sample_rate)
             sd.wait()
+            return True
 
         except subprocess.TimeoutExpired:
             logger.error("Piper TTS timed out")
+            return False
         except Exception as e:
             logger.error("TTS playback failed: %s", e)
+            return False
 
-    def _speak_dev_fallback(self, text: str):
+    def _speak_dev_fallback(self, text: str) -> bool:
         """Dev-only TTS fallback using macOS say command.
 
         Only used when Piper binary is unavailable and platform is macOS.
         NOT for production — Piper is the production TTS engine.
+
+        Returns True if speech was produced, False on failure.
         """
         try:
-            subprocess.run(
+            result = subprocess.run(
                 ["say", text],
                 timeout=30,
                 check=False,
             )
+            return result.returncode == 0
         except subprocess.TimeoutExpired:
             logger.error("Dev TTS fallback (say) timed out")
+            return False
         except Exception as e:
             logger.error("Dev TTS fallback (say) failed: %s", e)
+            return False
 
     # ── Display ─────────────────────────────────────────────────────
 
