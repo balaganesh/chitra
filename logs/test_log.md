@@ -1,3 +1,33 @@
+## Test Run — 2026-02-22 (Session 6)
+
+### Summary
+- Total formal tests: 212
+- Passed: 212
+- Failed: 0
+- All modules import cleanly
+- Run time: ~2 seconds
+
+### Tests added this session
+- None — this was a seed script implementation session, no new formal tests
+
+### Manual verification
+- `seed_demo.py` tested manually:
+  - Contacts: 3 created (Amma, Ravi, Priya) with correct last_interaction dates — confirmed
+  - Calendar: 1 event (Team meeting today at 10:00 with participants) — confirmed
+  - Tasks: 3 pending tasks with due dates — confirmed
+  - Memory: 9 entries across 4 categories, context block formatted correctly — confirmed
+  - Onboarding marker: created — confirmed
+  - Reminders: 0 (correct — user creates these during demo) — confirmed
+  - Neglected contacts: Amma (5 days, >3 day threshold) — confirmed
+  - Idempotency: re-run wipes and re-creates cleanly — confirmed
+
+### Coverage notes
+- `seed_demo.py` is a setup script, not a runtime capability — manual verification is appropriate
+- No formal pytest tests added (seed script exercises the same capability APIs already covered by 212 tests)
+- All 212 existing tests still pass — no regressions
+
+---
+
 ## Test Run — 2026-02-22 (Session 5)
 
 ### Summary

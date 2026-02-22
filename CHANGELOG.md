@@ -1,3 +1,28 @@
+## 2026-02-22 — Session 6
+
+### Added
+- **`scripts/seed_demo.py`** — demo scenario seed script that pre-populates all capability databases for the PHASE1_SCOPE.md demo
+  - Contacts: Amma (mother, last interaction 5 days ago), Ravi (best friend, 2 days), Priya (colleague, today)
+  - Calendar: Team meeting today at 10:00 with participants
+  - Tasks: Review project notes, Update documentation, Prepare presentation — all with due dates
+  - Memory: 9 entries — user name, input mode preference, work schedule, relationships, calling mother preference, project notes preference, morning routine observation
+  - Marks onboarding complete so Chitra boots directly into conversation
+  - Wipes and re-creates all databases each run for clean state
+  - Uses today's date dynamically so temporal references are always correct
+
+### Changed
+- Nothing
+
+### Fixed
+- Nothing
+
+### Deferred
+- End-to-end integration test with live Ollama (requires `ollama pull llama3.1:8b`)
+- Voice mode end-to-end testing with audio deps
+- Linux VM testing
+
+---
+
 ## 2026-02-22 — Session 5
 
 ### Added
@@ -15,8 +40,8 @@
 - Nothing
 
 ### Deferred
+- ~~End-to-end integration test with live Ollama~~ (seed script ready, Session 6)
 - Voice mode end-to-end testing with audio deps
-- End-to-end integration test with live Ollama
 - Linux VM testing
 
 ---

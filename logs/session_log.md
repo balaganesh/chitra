@@ -1,3 +1,36 @@
+## Session — 2026-02-22 (Session 6)
+
+### What was discussed
+- Building the demo seed script to pre-populate databases for the PHASE1_SCOPE.md demo scenario
+- Reviewed all capability APIs (Contacts, Calendar, Tasks, Memory, Reminders) to understand exact field names and create patterns
+- Reviewed the onboarding marker mechanism to skip onboarding for seeded data
+
+### Key decisions made
+1. **Wipe and re-create on every run** — seed script deletes all existing databases and re-creates from scratch. Ensures clean, reproducible state. Safe because it's a setup script, not runtime code.
+2. **Dynamic dates** — all dates computed from `datetime.now()` so the demo scenario is temporally correct regardless of when it's run
+3. **Amma's last_interaction set to 5 days ago** — matches the demo scenario exactly ("it's been 5 days since you last noted a call with her")
+4. **9 memory entries** — covers both what onboarding would have collected (name, input mode, key people, work schedule) and demo-specific memories (calling mother preference, project notes, morning routine)
+5. **No reminders pre-seeded** — the user creates these during the demo conversation ("set a reminder to call her at 7 this evening")
+
+### What was built
+- **`scripts/seed_demo.py`** — complete demo seed script:
+  - `seed_contacts()` — Amma, Ravi, Priya with correct last_interaction offsets
+  - `seed_calendar()` — Team meeting today at 10:00
+  - `seed_tasks()` — 3 pending tasks with due dates computed from today
+  - `seed_memory()` — 9 memory entries across all 4 categories
+  - `_mark_onboarding_complete()` — creates `.onboarding_complete` marker
+  - `_wipe_databases()` — removes all existing .db files for clean state
+
+### Open questions
+- None — seed script is complete and verified
+
+### Deferred work
+- End-to-end integration test with live Ollama (requires pulling llama3.1:8b model)
+- Voice mode end-to-end testing with audio deps
+- Linux VM testing
+
+---
+
 ## Session — 2026-02-22 (Session 5)
 
 ### What was discussed
