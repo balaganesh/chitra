@@ -1,3 +1,20 @@
+## 2026-02-22 — Session 13
+
+### Added
+- `requirements-ci.txt` — lightweight CI dependency file (no torch/whisper/silero-vad)
+- `libportaudio2` added to CI and Dockerfile system dependencies
+
+### Changed
+- CI workflow uses `requirements-ci.txt` instead of full `requirements.txt` to avoid heavy ML deps on runners
+- Optional audio/ML imports in `capabilities/voice_io.py` now catch `Exception` instead of just `ImportError` (handles `OSError` from sounddevice on headless Linux)
+
+### Fixed
+- CI test failures on ubuntu-latest caused by sounddevice `OSError` on headless systems (no PortAudio runtime)
+
+### Deferred
+- Local Docker-based Linux validation (user unable to install Docker)
+- Full ML-dep test suite on Linux CI (torch/whisper install too heavy for CI runners)
+
 ## 2026-02-22 — Session 12
 
 ### Added

@@ -1,3 +1,20 @@
+## Test Run — 2026-02-22 (Session 13)
+
+### Summary
+- Local (macOS): 233 passed in 7.83s
+- CI (ubuntu-latest): 212 passed, 21 skipped in CI run #21
+  - 21 voice-mode tests skipped (ML deps not installed in CI)
+  - Piper TTS setup validated on Linux
+
+### Tests added this session
+- No new tests added this session
+
+### Coverage notes
+- All 233 tests pass locally with full ML deps
+- 212 of 233 tests pass on Linux CI without ML deps; 21 voice-mode tests correctly skip
+- Piper TTS binary download and execution validated on Linux via CI step
+- CI exit code 2 bug diagnosed and fixed (broadened exception handling for optional imports)
+
 ## Test Run — 2026-02-22 (Session 12)
 
 ### Summary

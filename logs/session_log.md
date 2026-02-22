@@ -1,3 +1,24 @@
+## Session — 2026-02-22 (Session 13)
+
+### What was discussed
+- Linux validation strategy: Docker cancelled (user unable to install), pivoted to GitHub Actions CI on ubuntu-latest as the Linux validation mechanism
+- CI failure diagnosis: `sounddevice` throws `OSError` (not `ImportError`) on headless Linux when PortAudio shared library is missing — broadened exception handling from `ImportError` to `Exception` for all optional audio/ML imports
+- Lightweight CI requirements: created `requirements-ci.txt` without heavy ML deps (torch, whisper, silero-vad) to keep CI fast and reliable; 21 voice-mode tests auto-skip via `skip_no_audio`
+
+### What was built
+- `requirements-ci.txt` — lightweight dependency file for CI (core deps only, no ML)
+- Updated `.github/workflows/ci.yml` — uses `requirements-ci.txt`, adds `libportaudio2` system dep
+- Updated `capabilities/voice_io.py` — broadened optional import try/except from `ImportError` to `Exception` to handle `OSError` on headless Linux
+- Updated `Dockerfile` — added `libportaudio2` to system deps
+- CI run #21 on ubuntu-latest: all steps pass (lint, 212 tests, 21 skipped, Piper TTS setup validated)
+
+### Open questions
+- None
+
+### Deferred work
+- Local Docker validation (user unable to install Docker Desktop)
+- Full 233-test run on Linux with ML deps (would require torch/whisper in CI — expensive and slow)
+
 ## Session — 2026-02-22 (Session 12)
 
 ### What was discussed
