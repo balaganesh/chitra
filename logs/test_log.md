@@ -1,3 +1,36 @@
+## Test Run — 2026-02-22 (Session 14)
+
+### Summary
+- Total tests: 251
+- Passed: 251
+- Failed: 0
+- Local: 251 passed in 6.54s
+
+### Tests added this session
+- `TestTextModeE2E::test_single_turn_no_action` — full pipeline without action
+- `TestTextModeE2E::test_single_turn_with_action_creates_contact` — contact creation round-trip
+- `TestTextModeE2E::test_single_turn_with_action_creates_task` — task creation round-trip
+- `TestTextModeE2E::test_single_turn_with_action_creates_reminder` — reminder creation round-trip
+- `TestTextModeE2E::test_single_turn_stores_memory` — memory stored and visible in context
+- `TestTextModeE2E::test_action_plus_memory_in_same_turn` — action + memory in one turn
+- `TestTextModeE2E::test_multi_turn_history_accumulates` — history grows across turns
+- `TestTextModeE2E::test_multi_turn_history_trimming` — history trims to max turns
+- `TestTextModeE2E::test_multi_turn_context_includes_prior_memories` — turn 1 memory in turn 2 context
+- `TestTextModeE2E::test_conversation_loop_listen_handle_display_speak` — full loop iteration
+- `TestTextModeE2E::test_conversation_loop_skips_empty_input` — empty input skipped
+- `TestTextModeE2E::test_conversation_loop_skips_listen_error` — listen error skipped
+- `TestTextModeE2E::test_conversation_loop_survives_llm_failure` — loop continues after LLM crash
+- `TestTextModeE2E::test_handle_input_returns_fallback_on_exception` — fallback on context crash
+- `TestTextModeE2E::test_action_returns_none_skips_followup` — no followup for failed actions
+- `TestTextModeE2E::test_text_mode_speak_skips_tts` — TTS skipped in text mode
+- `TestTextModeE2E::test_display_records_conversation_log` — conversation log updated
+- `TestTextModeE2E::test_create_then_retrieve_across_turns` — cross-turn action sequence
+
+### Coverage notes
+- Full text-mode E2E pipeline now tested (was a gap identified this session)
+- Both voice-mode (Session 10, 21 tests) and text-mode (Session 14, 18 tests) have dedicated E2E coverage
+- Manual verification with live Ollama confirmed tasks, reminders, and memories persist correctly
+
 ## Test Run — 2026-02-22 (Session 13)
 
 ### Summary

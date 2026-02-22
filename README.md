@@ -157,7 +157,7 @@ chitra/
     setup_piper.py              # Piper TTS setup
     setup_storage.py            # Storage initialization
   tests/
-    test_orchestration.py       # Orchestration + LLM + context tests (54 tests)
+    test_orchestration.py       # Orchestration + LLM + context + E2E tests (72 tests)
     test_onboarding.py          # Onboarding flow tests (26 tests)
     test_capabilities.py        # Capability unit tests (115 tests)
     test_memory.py              # Memory-specific tests (38 tests)
@@ -168,14 +168,14 @@ chitra/
 
 ## Tests
 
-233 tests, all passing:
+251 tests, all passing:
 
 ```bash
 source venv/bin/activate
 python3 -m pytest tests/ -v
 ```
 
-Coverage includes all 7 capabilities (including voice mode with mocked audio hardware), Orchestration Core, Proactive Loop, Context Assembly, LLM Client, Prompts, and Onboarding Flow. Demo scenario verified end-to-end with live Ollama.
+Coverage includes all 7 capabilities (including voice mode with mocked audio hardware), Orchestration Core, Proactive Loop, Context Assembly, LLM Client, Prompts, Onboarding Flow, and text-mode E2E pipeline tests. Both text and voice modes verified end-to-end with live Ollama.
 
 ---
 
@@ -201,4 +201,4 @@ Apache 2.0 — see [LICENSE](LICENSE).
 
 ## Status
 
-🟢 **Phase 1 — Core implementation complete.** All 7 capabilities, orchestration layer, LLM client, proactive loop, and onboarding flow are built and tested. Demo scenario verified end-to-end with live Ollama (qwen2.5:7b). Full voice-to-voice conversation verified on macOS (Whisper STT + LLM + macOS say TTS). CI pipeline active on Linux (lint + 212 tests + Piper TTS validation on ubuntu-latest).
+🟢 **Phase 1 — Core implementation complete.** All 7 capabilities, orchestration layer, LLM client, proactive loop, and onboarding flow are built and tested. Both text and voice modes verified end-to-end with live Ollama (qwen2.5:7b). Full voice-to-voice conversation verified on macOS (Whisper STT + LLM + macOS say TTS). CI pipeline active on Linux (lint + 230 tests + Piper TTS validation on ubuntu-latest).

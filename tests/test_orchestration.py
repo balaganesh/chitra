@@ -3,6 +3,7 @@ Integration tests for the AI Orchestration Core.
 
 Tests:
 - Full interaction flow end to end
+- Text-mode E2E conversation loop tests
 - Proactive loop trigger and response
 - JSON parsing failure and retry behavior
 - Context assembly correctness
@@ -10,6 +11,7 @@ Tests:
 
 import asyncio
 import os
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -575,3 +577,482 @@ class TestPrompts:
         formatted = PROACTIVE_PROMPT_TEMPLATE.format(context="Overdue: Buy milk")
         assert "Buy milk" in formatted
         assert "should_speak" in formatted
+
+
+# ── Text-Mode End-to-End Tests ───────────────────────────────────
+
+
+def _make_llm_response(response_text, action=None, memory_store=None):
+    """Build a valid LLM response dict for mocking."""
+    return {
+        "intent": "general",
+        "action": action,
+        "response": response_text,
+        "memory_store": memory_store or [],
+    }
+
+
+class TestTextModeE2E:
+    """End-to-end tests for the text-mode conversation pipeline.
+
+    These wire together the full chain: listen (text) → context assembly →
+    LLM call (mocked) → action dispatch → capability execution (real DB) →
+    followup LLM → display → speak, using real capability instances with
+    isolated temp databases.
+    """
+
+    @pytest.fixture
+    def e2e_core(self, fresh_data_dir):
+        """OrchestrationCore with real capabilities, isolated data, text mode."""
+        core = OrchestrationCore()
+        core.voice_io._input_mode = "text"
+        return core
+
+    # ── 1. Full single-turn pipeline (no action) ─────────────────
+
+    @pytest.mark.asyncio
+    async def test_single_turn_no_action(self, e2e_core):
+        """Full pipeline: user input → context → LLM → response displayed."""
+        core = e2e_core
+
+        mock_llm_return = _make_llm_response("Hello! How can I help you today?")
+
+        with patch.object(core.llm, "call", new_callable=AsyncMock, return_value=mock_llm_return):
+            response = await core.handle_input("hello")
+
+        assert response == "Hello! How can I help you today?"
+        assert len(core.conversation_history) == 2
+        assert core.conversation_history[0] == {"role": "user", "content": "hello"}
+        assert core.conversation_history[1] == {
+            "role": "assistant", "content": "Hello! How can I help you today?",
+        }
+
+    # ── 2. Full single-turn pipeline with action round-trip ──────
+
+    @pytest.mark.asyncio
+    async def test_single_turn_with_action_creates_contact(self, e2e_core):
+        """User says 'add contact Ravi' → LLM returns action → contact created in DB → followup."""
+        core = e2e_core
+
+        first_llm = _make_llm_response(
+            "I'll add Ravi to your contacts.",
+            action={"capability": "contacts", "action": "create", "params": {"name": "Ravi", "relationship": "friend"}},
+        )
+        followup_llm = _make_llm_response("Done! I've added Ravi as a friend to your contacts.")
+
+        call_count = 0
+
+        async def mock_call(system_prompt, user_message, history=None):
+            nonlocal call_count
+            call_count += 1
+            if call_count == 1:
+                return first_llm
+            return followup_llm
+
+        with patch.object(core.llm, "call", side_effect=mock_call):
+            response = await core.handle_input("add contact Ravi")
+
+        assert call_count == 2
+        assert response == "Done! I've added Ravi as a friend to your contacts."
+
+        # Verify contact actually exists in the database
+        contact = await core.contacts.get(name="Ravi")
+        assert contact is not None
+        assert contact["name"] == "Ravi"
+        assert contact["relationship"] == "friend"
+
+    @pytest.mark.asyncio
+    async def test_single_turn_with_action_creates_task(self, e2e_core):
+        """Action round-trip: create task → verify in DB → followup response."""
+        core = e2e_core
+
+        first_llm = _make_llm_response(
+            "I'll create that task.",
+            action={"capability": "tasks", "action": "create", "params": {"title": "Buy groceries", "priority": "high"}},
+        )
+        followup_llm = _make_llm_response("Added 'Buy groceries' as a high-priority task.")
+
+        call_count = 0
+
+        async def mock_call(system_prompt, user_message, history=None):
+            nonlocal call_count
+            call_count += 1
+            return first_llm if call_count == 1 else followup_llm
+
+        with patch.object(core.llm, "call", side_effect=mock_call):
+            response = await core.handle_input("remind me to buy groceries")
+
+        assert response == "Added 'Buy groceries' as a high-priority task."
+        tasks = await core.tasks.list()
+        assert any(t["title"] == "Buy groceries" for t in tasks)
+
+    @pytest.mark.asyncio
+    async def test_single_turn_with_action_creates_reminder(self, e2e_core):
+        """Action round-trip: create reminder → verify in DB."""
+        core = e2e_core
+
+        first_llm = _make_llm_response(
+            "Setting a reminder.",
+            action={
+                "capability": "reminders", "action": "create",
+                "params": {"text": "Call mom", "trigger_at": "2026-02-23T10:00:00"},
+            },
+        )
+        followup_llm = _make_llm_response("I'll remind you to call mom tomorrow at 10 AM.")
+
+        calls = []
+
+        async def mock_call(system_prompt, user_message, history=None):
+            calls.append(user_message)
+            return first_llm if len(calls) == 1 else followup_llm
+
+        with patch.object(core.llm, "call", side_effect=mock_call):
+            response = await core.handle_input("remind me to call mom tomorrow at 10am")
+
+        assert "call mom" in response.lower()
+        reminders = await core.reminders.list_upcoming(hours_ahead=48)
+        assert any(r["text"] == "Call mom" for r in reminders)
+
+    # ── 3. Memory storage from LLM response ──────────────────────
+
+    @pytest.mark.asyncio
+    async def test_single_turn_stores_memory(self, e2e_core):
+        """LLM returns memory_store entries → stored in Memory DB → appear in context."""
+        core = e2e_core
+
+        mock_return = _make_llm_response(
+            "Nice! I'll remember you work at Flipkart.",
+            memory_store=[{
+                "category": "fact",
+                "subject": "work",
+                "content": "Works at Flipkart",
+                "confidence": 1.0,
+                "source": "stated",
+            }],
+        )
+
+        with patch.object(core.llm, "call", new_callable=AsyncMock, return_value=mock_return):
+            await core.handle_input("I work at Flipkart")
+
+        ctx = await core.memory.get_context()
+        assert "Flipkart" in ctx.get("context_block", "")
+
+    @pytest.mark.asyncio
+    async def test_action_plus_memory_in_same_turn(self, e2e_core):
+        """LLM returns both an action and memory_store in the same turn."""
+        core = e2e_core
+
+        first_llm = _make_llm_response(
+            "Adding Amma.",
+            action={"capability": "contacts", "action": "create", "params": {"name": "Amma", "relationship": "mother"}},
+            memory_store=[{
+                "category": "relationship",
+                "subject": "Amma",
+                "content": "User's mother is Amma",
+                "confidence": 1.0,
+                "source": "stated",
+            }],
+        )
+        followup_llm = _make_llm_response("I've added Amma as your mother in contacts.")
+
+        call_count = 0
+
+        async def mock_call(system_prompt, user_message, history=None):
+            nonlocal call_count
+            call_count += 1
+            return first_llm if call_count == 1 else followup_llm
+
+        with patch.object(core.llm, "call", side_effect=mock_call):
+            await core.handle_input("my mother's name is Amma, add her to contacts")
+
+        contact = await core.contacts.get(name="Amma")
+        assert contact is not None
+        assert contact["relationship"] == "mother"
+
+        ctx = await core.memory.get_context()
+        assert "Amma" in ctx.get("context_block", "")
+
+    # ── 4. Multi-turn conversation with history ──────────────────
+
+    @pytest.mark.asyncio
+    async def test_multi_turn_history_accumulates(self, e2e_core):
+        """Conversation history grows across turns and is passed to LLM."""
+        core = e2e_core
+        captured_histories = []
+
+        async def mock_call(system_prompt, user_message, history=None):
+            captured_histories.append(list(history) if history else [])
+            return _make_llm_response(f"Reply to: {user_message}")
+
+        with patch.object(core.llm, "call", side_effect=mock_call):
+            await core.handle_input("first message")
+            await core.handle_input("second message")
+            await core.handle_input("third message")
+
+        assert len(captured_histories) == 3
+        assert len(captured_histories[0]) == 0
+        assert len(captured_histories[1]) == 2
+        assert len(captured_histories[2]) == 4
+
+        assert captured_histories[1][0]["content"] == "first message"
+        assert captured_histories[2][2]["content"] == "second message"
+
+    @pytest.mark.asyncio
+    async def test_multi_turn_history_trimming(self, e2e_core):
+        """History trims to max_history_turns, keeping most recent turns."""
+        core = e2e_core
+        core.max_history_turns = 2  # Keep only 2 turns = 4 messages
+
+        async def mock_call(system_prompt, user_message, history=None):
+            return _make_llm_response(f"Reply to: {user_message}")
+
+        with patch.object(core.llm, "call", side_effect=mock_call):
+            for i in range(5):
+                await core.handle_input(f"turn {i}")
+
+        assert len(core.conversation_history) == 4
+        assert core.conversation_history[0]["content"] == "turn 3"
+        assert core.conversation_history[2]["content"] == "turn 4"
+
+    @pytest.mark.asyncio
+    async def test_multi_turn_context_includes_prior_memories(self, e2e_core):
+        """Memory stored in turn 1 appears in context for turn 2."""
+        core = e2e_core
+        captured_prompts = []
+
+        turn = 0
+
+        async def mock_call(system_prompt, user_message, history=None):
+            nonlocal turn
+            turn += 1
+            captured_prompts.append(system_prompt)
+            if turn == 1:
+                return _make_llm_response(
+                    "Got it, you prefer dark mode.",
+                    memory_store=[{
+                        "category": "preference",
+                        "subject": "ui_theme",
+                        "content": "Prefers dark mode",
+                        "confidence": 1.0,
+                        "source": "stated",
+                    }],
+                )
+            return _make_llm_response("Sure, I remember you like dark mode.")
+
+        with patch.object(core.llm, "call", side_effect=mock_call):
+            await core.handle_input("I prefer dark mode")
+            await core.handle_input("what are my preferences?")
+
+        assert "dark mode" not in captured_prompts[0].lower()
+        assert "dark mode" in captured_prompts[1].lower()
+
+    # ── 5. Conversation loop integration ─────────────────────────
+
+    @pytest.mark.asyncio
+    async def test_conversation_loop_listen_handle_display_speak(self, e2e_core):
+        """Full loop iteration: listen → handle_input → display → speak."""
+        core = e2e_core
+
+        mock_llm_return = _make_llm_response("Good morning!")
+
+        listen_calls = 0
+
+        async def mock_listen():
+            nonlocal listen_calls
+            listen_calls += 1
+            if listen_calls == 1:
+                return {"text": "good morning", "confidence": 1.0}
+            raise KeyboardInterrupt
+
+        with (
+            patch.object(core.voice_io, "listen", side_effect=mock_listen),
+            patch.object(core.voice_io, "display", new_callable=AsyncMock, return_value={"status": "done"}) as mock_display,
+            patch.object(core.voice_io, "speak", new_callable=AsyncMock, return_value={"status": "done"}) as mock_speak,
+            patch.object(core.llm, "call", new_callable=AsyncMock, return_value=mock_llm_return),
+        ):
+            with pytest.raises(KeyboardInterrupt):
+                await core._conversation_loop()
+
+        mock_display.assert_called_once_with("good morning", "Good morning!")
+        mock_speak.assert_called_once_with("Good morning!")
+        assert core.conversation_history[0]["content"] == "good morning"
+        assert core.conversation_history[1]["content"] == "Good morning!"
+
+    @pytest.mark.asyncio
+    async def test_conversation_loop_skips_empty_input(self, e2e_core):
+        """Loop continues past empty input without calling LLM."""
+        core = e2e_core
+
+        listen_calls = 0
+
+        async def mock_listen():
+            nonlocal listen_calls
+            listen_calls += 1
+            if listen_calls == 1:
+                return {"text": "", "confidence": 1.0}
+            if listen_calls == 2:
+                return {"text": "hi", "confidence": 1.0}
+            raise KeyboardInterrupt
+
+        with (
+            patch.object(core.voice_io, "listen", side_effect=mock_listen),
+            patch.object(core.voice_io, "display", new_callable=AsyncMock, return_value={"status": "done"}),
+            patch.object(core.voice_io, "speak", new_callable=AsyncMock, return_value={"status": "done"}),
+            patch.object(core.llm, "call", new_callable=AsyncMock, return_value=_make_llm_response("Hey!")) as mock_llm,
+        ):
+            with pytest.raises(KeyboardInterrupt):
+                await core._conversation_loop()
+
+        mock_llm.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_conversation_loop_skips_listen_error(self, e2e_core):
+        """Loop continues past listen errors without crashing."""
+        core = e2e_core
+
+        listen_calls = 0
+
+        async def mock_listen():
+            nonlocal listen_calls
+            listen_calls += 1
+            if listen_calls == 1:
+                return {"error": "Microphone not found"}
+            if listen_calls == 2:
+                return {"text": "hello", "confidence": 1.0}
+            raise KeyboardInterrupt
+
+        with (
+            patch.object(core.voice_io, "listen", side_effect=mock_listen),
+            patch.object(core.voice_io, "display", new_callable=AsyncMock, return_value={"status": "done"}),
+            patch.object(core.voice_io, "speak", new_callable=AsyncMock, return_value={"status": "done"}),
+            patch.object(core.llm, "call", new_callable=AsyncMock, return_value=_make_llm_response("Hi!")) as mock_llm,
+        ):
+            with pytest.raises(KeyboardInterrupt):
+                await core._conversation_loop()
+
+        mock_llm.assert_called_once()
+
+    # ── 6. Error resilience ──────────────────────────────────────
+
+    @pytest.mark.asyncio
+    async def test_conversation_loop_survives_llm_failure(self, e2e_core):
+        """Loop recovers from an LLM exception and continues to next turn."""
+        core = e2e_core
+
+        listen_calls = 0
+
+        async def mock_listen():
+            nonlocal listen_calls
+            listen_calls += 1
+            if listen_calls == 1:
+                return {"text": "crash me", "confidence": 1.0}
+            if listen_calls == 2:
+                return {"text": "try again", "confidence": 1.0}
+            raise KeyboardInterrupt
+
+        call_count = 0
+
+        async def mock_llm_call(system_prompt, user_message, history=None):
+            nonlocal call_count
+            call_count += 1
+            if call_count == 1:
+                raise RuntimeError("LLM connection lost")
+            return _make_llm_response("I'm back!")
+
+        with (
+            patch.object(core.voice_io, "listen", side_effect=mock_listen),
+            patch.object(core.voice_io, "display", new_callable=AsyncMock, return_value={"status": "done"}) as mock_display,
+            patch.object(core.voice_io, "speak", new_callable=AsyncMock, return_value={"status": "done"}),
+            patch.object(core.llm, "call", side_effect=mock_llm_call),
+        ):
+            with pytest.raises(KeyboardInterrupt):
+                await core._conversation_loop()
+
+        display_calls = mock_display.call_args_list
+        assert len(display_calls) == 2
+        # First turn: handle_input catches LLM error and returns fallback
+        assert "trouble processing" in display_calls[0].args[1].lower()
+        # Second turn: LLM succeeds
+        assert display_calls[1].args[1] == "I'm back!"
+
+    @pytest.mark.asyncio
+    async def test_handle_input_returns_fallback_on_exception(self, e2e_core):
+        """handle_input returns a user-friendly message when context assembly crashes."""
+        core = e2e_core
+
+        with patch.object(
+            core.context_assembler, "assemble", side_effect=RuntimeError("DB locked"),
+        ):
+            response = await core.handle_input("hello")
+
+        assert "trouble processing" in response.lower()
+
+    # ── 7. Action with no result (action returns None) ───────────
+
+    @pytest.mark.asyncio
+    async def test_action_returns_none_skips_followup(self, e2e_core):
+        """When action dispatch returns None, no followup LLM call is made."""
+        core = e2e_core
+
+        mock_return = _make_llm_response(
+            "I'll try to do that.",
+            action={"capability": "nonexistent", "action": "do_thing", "params": {}},
+        )
+
+        with patch.object(core.llm, "call", new_callable=AsyncMock, return_value=mock_return) as mock_llm:
+            response = await core.handle_input("do something impossible")
+
+        mock_llm.assert_called_once()
+        assert response == "I'll try to do that."
+
+    # ── 8. Full listen→display→speak in text mode ────────────────
+
+    @pytest.mark.asyncio
+    async def test_text_mode_speak_skips_tts(self, e2e_core):
+        """In text mode, speak() returns immediately without TTS."""
+        core = e2e_core
+        result = await core.voice_io.speak("Hello world")
+        assert result == {"status": "done"}
+
+    @pytest.mark.asyncio
+    async def test_display_records_conversation_log(self, e2e_core):
+        """display() appends exchanges to the conversation log."""
+        core = e2e_core
+        await core.voice_io.display("user says hi", "chitra says hello")
+        assert len(core.voice_io._conversation_log) == 2
+        assert core.voice_io._conversation_log[0] == {"role": "user", "text": "user says hi"}
+        assert core.voice_io._conversation_log[1] == {"role": "chitra", "text": "chitra says hello"}
+
+    # ── 9. Two-action sequence across turns ──────────────────────
+
+    @pytest.mark.asyncio
+    async def test_create_then_retrieve_across_turns(self, e2e_core):
+        """Turn 1 creates a contact, turn 2 retrieves it — both via full pipeline."""
+        core = e2e_core
+
+        turn = 0
+
+        async def mock_call(system_prompt, user_message, history=None):
+            nonlocal turn
+            turn += 1
+            if turn == 1:
+                return _make_llm_response(
+                    "Adding Priya.",
+                    action={"capability": "contacts", "action": "create", "params": {"name": "Priya", "relationship": "sister"}},
+                )
+            if turn == 2:
+                return _make_llm_response("Done! Priya has been added.")
+            if turn == 3:
+                return _make_llm_response(
+                    "Looking up Priya.",
+                    action={"capability": "contacts", "action": "get", "params": {"name": "Priya"}},
+                )
+            return _make_llm_response("Priya is your sister.")
+
+        with patch.object(core.llm, "call", side_effect=mock_call):
+            r1 = await core.handle_input("add my sister Priya to contacts")
+            r2 = await core.handle_input("who is Priya?")
+
+        assert "Priya" in r1
+        assert "sister" in r2.lower()
+        assert len(core.conversation_history) == 4

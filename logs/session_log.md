@@ -1,3 +1,34 @@
+## Session — 2026-02-22 (Session 14)
+
+### What was discussed
+- Text-mode end-to-end testing: identified gap where voice mode was E2E tested (Sessions 10-11) but text/type mode was not
+- Designed 18 automated E2E tests covering the full text-mode pipeline: listen → context assembly → LLM → action dispatch → capability DB writes → followup LLM → display → speak
+- Manual interactive verification with live Ollama (qwen2.5:7b) in text mode — 6-turn conversation exercising task creation, reminder creation, memory storage, and multi-turn context recall
+
+### What was built
+- `tests/test_orchestration.py` — added `TestTextModeE2E` class with 18 new tests:
+  - Single-turn no-action pipeline
+  - Action round-trips for contacts, tasks, reminders (real DB writes)
+  - Memory storage from LLM response and verification in context
+  - Action + memory in same turn
+  - Multi-turn history accumulation and trimming
+  - Memory from turn 1 appearing in turn 2 context
+  - Full conversation loop integration (listen → handle → display → speak)
+  - Loop skips empty input and listen errors
+  - Loop survives LLM failure and continues
+  - handle_input fallback on context assembly crash
+  - Action returning None skips followup LLM call
+  - Text-mode speak skips TTS
+  - Display records conversation log
+  - Cross-turn create-then-retrieve action sequence
+- Manual E2E test verified: tasks, reminders, and memories persisted correctly with live Ollama
+
+### Open questions
+- None
+
+### Deferred work
+- None — text-mode E2E testing is complete
+
 ## Session — 2026-02-22 (Session 13)
 
 ### What was discussed

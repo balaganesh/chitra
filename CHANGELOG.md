@@ -1,3 +1,18 @@
+## 2026-02-22 — Session 14
+
+### Added
+- 18 text-mode E2E tests in `TestTextModeE2E` covering full conversation pipeline with real capability databases
+- Manual E2E verification with live Ollama in text mode (6-turn conversation)
+
+### Changed
+- Total tests: 233 → 251
+
+### Fixed
+- Nothing
+
+### Deferred
+- Nothing
+
 ## 2026-02-22 — Session 13
 
 ### Added
