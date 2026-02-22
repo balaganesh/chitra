@@ -1,3 +1,28 @@
+## 2026-02-22 — Session 7
+
+### Added
+- **GitHub Actions CI workflow** (`.github/workflows/ci.yml`) running on pushes/PRs to `main` and `dev`
+  - Python 3.11 setup
+  - Dependency installation from `requirements.txt`
+  - Lint step: `ruff check .`
+  - Test step: `pytest tests/ -v`
+- **Ruff configuration** (`pyproject.toml`) with Python 3.11 target and baseline lint policy
+
+### Changed
+- Project quality gates now include automated lint + tests in CI
+- Local test run for closure: 212 tests passing
+
+### Fixed
+- Removed unused import `sys` from `main.py`
+- Removed unused `Reminders` import from `scripts/seed_demo.py`
+
+### Deferred
+- Incremental lint tightening (reduce ignores and fix remaining non-baseline issues over follow-up sessions)
+- Linux VM validation
+- Voice mode end-to-end testing with audio dependencies
+
+---
+
 ## 2026-02-22 — Session 6
 
 ### Added

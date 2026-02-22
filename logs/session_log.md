@@ -1,3 +1,40 @@
+## Session — 2026-02-22 (Session 7)
+
+### What was discussed
+- Requested a repository status review and then approved execution of next steps
+- Agreed to prioritize baseline engineering guardrails first: CI + lint checks
+- Requested session closure protocol once CI/lint setup was complete
+
+### Key decisions made
+1. **Baseline-first quality gates** — introduce CI and lint without broad code churn
+2. **Ruff scope kept practical** — start with a stable baseline and tighten incrementally later
+3. **Branch targets for CI** — run checks on both `main` and `dev` for immediate feedback during active development
+
+### What was built
+- **Repository assessment completed** with status summary and actionable next steps
+- **CI workflow added** at `.github/workflows/ci.yml`:
+  - Python 3.11 environment
+  - `pip install -r requirements.txt`
+  - `ruff check .`
+  - `pytest tests/ -v`
+- **Ruff baseline configuration added** in `pyproject.toml`
+- **Cleanup fixes**:
+  - Removed unused `sys` import from `main.py`
+  - Removed unused `Reminders` import from `scripts/seed_demo.py`
+- **Session closure protocol executed**:
+  - Full test suite rerun successfully (212/212 passing)
+  - Logs and changelog updated for this session
+
+### Open questions
+- None blocking. Next improvement track is incremental lint tightening after this baseline.
+
+### Deferred work
+- Incremental lint rule tightening and cleanup pass
+- Linux VM validation
+- Voice mode end-to-end testing with audio dependencies
+
+---
+
 ## Session — 2026-02-22 (Session 6)
 
 ### What was discussed
