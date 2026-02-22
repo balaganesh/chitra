@@ -25,7 +25,10 @@ from storage.schema import CONTACTS_SCHEMA
 logger = logging.getLogger(__name__)
 
 # Fields that can be set on a contact
-VALID_FIELDS = {"name", "relationship", "phone", "email", "notes", "last_interaction", "communication_preference"}
+VALID_FIELDS = {
+    "name", "relationship", "phone", "email",
+    "notes", "last_interaction", "communication_preference",
+}
 
 
 class Contacts:
@@ -161,7 +164,7 @@ class Contacts:
 
             # Build dynamic UPDATE
             set_clause = ", ".join(f"{k} = ?" for k in updates)
-            values = list(updates.values()) + [contact_id]
+            values = [*list(updates.values()), contact_id]
             conn.execute(f"UPDATE contacts SET {set_clause} WHERE id = ?", values)
             conn.commit()
 

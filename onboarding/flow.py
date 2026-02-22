@@ -53,7 +53,7 @@ ONBOARDING_STEPS = [
         "prompt": (
             "Tell me about a few important people in your life — "
             "their names and how you know them. For example: "
-            "\"Amma is my mother, Ravi is my best friend.\""
+            '"Amma is my mother, Ravi is my best friend."'
         ),
         "memory_category": "relationship",
         "memory_subject": "key_people",
@@ -88,7 +88,7 @@ class OnboardingFlow:
     def __init__(self, core):
         self.core = core
         self._onboarding_marker = os.path.join(
-            self.core.data_dir, ".onboarding_complete"
+            self.core.data_dir, ".onboarding_complete",
         )
 
     async def should_run(self) -> bool:
@@ -243,7 +243,7 @@ class OnboardingFlow:
 
         summary_parts.append(
             "\nI'll remember all of this. Let's get started — "
-            "just talk to me whenever you need something."
+            "just talk to me whenever you need something.",
         )
 
         return "\n".join(summary_parts)

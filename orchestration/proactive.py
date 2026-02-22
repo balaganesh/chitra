@@ -36,7 +36,7 @@ class ProactiveLoop:
         exceptions per-tick so the loop never dies.
         """
         logger.info(
-            "Proactive loop starting — interval: %d seconds", self.interval
+            "Proactive loop starting — interval: %d seconds", self.interval,
         )
 
         while True:
@@ -75,12 +75,12 @@ class ProactiveLoop:
 
             # Build the proactive prompt
             proactive_message = PROACTIVE_PROMPT_TEMPLATE.format(
-                context=context_description
+                context=context_description,
             )
 
             # Assemble system prompt with memory context (same as regular calls)
             full_context = await self.core.context_assembler.assemble(
-                self.core.conversation_history
+                self.core.conversation_history,
             )
             system_prompt = full_context["system_prompt"]
 
@@ -94,7 +94,7 @@ class ProactiveLoop:
                 # Check again — user may have become active during LLM call
                 if self.core.is_user_active:
                     logger.info(
-                        "Proactive message ready but user became active — skipping"
+                        "Proactive message ready but user became active — skipping",
                     )
                     return
 

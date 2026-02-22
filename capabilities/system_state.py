@@ -32,6 +32,7 @@ class SystemState:
                 "battery_percent": int (0-100, -1 if unavailable),
                 "time_of_day": "morning" | "afternoon" | "evening" | "night"
             }
+
         """
         try:
             now = datetime.now()

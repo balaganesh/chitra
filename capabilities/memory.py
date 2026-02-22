@@ -131,6 +131,7 @@ class Memory:
 
         Returns:
             {"context_block": str} — structured natural language, not raw JSON
+
         """
         try:
             conn = self._get_conn()
@@ -140,7 +141,7 @@ class Memory:
 
             # Fetch all active entries
             rows = conn.execute(
-                "SELECT * FROM memories WHERE active = 1 ORDER BY category, created_at"
+                "SELECT * FROM memories WHERE active = 1 ORDER BY category, created_at",
             ).fetchall()
 
             # Apply context window rules — only include entries that pass filters
@@ -189,14 +190,16 @@ class Memory:
                 placeholders = ",".join("?" for _ in included_ids)
                 conn.execute(
                     f"UPDATE memories SET last_referenced = ? WHERE id IN ({placeholders})",
-                    [now.isoformat()] + included_ids,
+                    [now.isoformat(), *included_ids],
                 )
                 conn.commit()
 
             conn.close()
 
             # Build the context block as structured natural language
-            context_block = self._format_context_block(preferences, facts, relationships, observations)
+            context_block = self._format_context_block(
+                preferences, facts, relationships, observations,
+            )
 
             return {"context_block": context_block}
 
@@ -219,10 +222,8 @@ class Memory:
 
         if preferences or facts:
             lines = ["About the user:"]
-            for entry in facts:
-                lines.append(f"- {entry['content']}")
-            for entry in preferences:
-                lines.append(f"- {entry['content']}")
+            lines.extend(f"- {entry['content']}" for entry in facts)
+            lines.extend(f"- {entry['content']}" for entry in preferences)
             sections.append("\n".join(lines))
 
         if relationships:

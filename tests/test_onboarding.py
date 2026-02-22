@@ -12,11 +12,12 @@ Tests:
 """
 
 import os
+
 import pytest
 
 os.environ["CHITRA_DATA_DIR"] = "/tmp/chitra_test_onboarding"
 
-from onboarding.flow import OnboardingFlow, ONBOARDING_STEPS
+from onboarding.flow import ONBOARDING_STEPS, OnboardingFlow
 from orchestration.core import OrchestrationCore
 
 

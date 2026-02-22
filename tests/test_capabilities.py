@@ -8,19 +8,19 @@ Tests each capability's:
 """
 
 import os
-import pytest
 from datetime import datetime, timedelta
-from unittest.mock import patch, AsyncMock
+from unittest.mock import AsyncMock, patch
+
+import pytest
 
 os.environ["CHITRA_DATA_DIR"] = "/tmp/chitra_test_capabilities"
 
-from capabilities.contacts import Contacts
 from capabilities.calendar import Calendar
+from capabilities.contacts import Contacts
 from capabilities.reminders import Reminders
-from capabilities.tasks import Tasks
 from capabilities.system_state import SystemState
+from capabilities.tasks import Tasks
 from capabilities.voice_io import VoiceIO
-
 
 # ═══════════════════════════════════════════════════════════════════
 # Contacts
@@ -606,14 +606,14 @@ class TestTasks:
 
     @pytest.mark.asyncio
     async def test_list_invalid_status(self, tasks):
-        """list with invalid status returns empty list."""
+        """List with invalid status returns empty list."""
         await tasks.create({"title": "Task"})
         result = await tasks.list("invalid")
         assert result == []
 
     @pytest.mark.asyncio
     async def test_list_empty(self, tasks):
-        """list returns empty list when no tasks."""
+        """List returns empty list when no tasks."""
         result = await tasks.list("all")
         assert result == []
 
@@ -715,7 +715,7 @@ class TestSystemState:
 
     @pytest.mark.asyncio
     async def test_datetime_is_iso(self):
-        """datetime field is in ISO format."""
+        """Datetime field is in ISO format."""
         ss = SystemState()
         result = await ss.get()
         # Should parse without error
@@ -835,7 +835,7 @@ class TestVoiceIO:
 
     @pytest.mark.asyncio
     async def test_listen_text_normal(self, voice_io):
-        """listen in text mode returns typed text with confidence 1.0."""
+        """Listen in text mode returns typed text with confidence 1.0."""
         with patch("capabilities.voice_io.asyncio.to_thread", return_value="Hello Chitra"):
             result = await voice_io.listen()
             assert result["text"] == "Hello Chitra"
@@ -843,7 +843,7 @@ class TestVoiceIO:
 
     @pytest.mark.asyncio
     async def test_listen_text_empty(self, voice_io):
-        """listen in text mode handles empty input."""
+        """Listen in text mode handles empty input."""
         with patch("capabilities.voice_io.asyncio.to_thread", return_value=""):
             result = await voice_io.listen()
             assert result["text"] == ""
@@ -851,14 +851,14 @@ class TestVoiceIO:
 
     @pytest.mark.asyncio
     async def test_listen_text_strips_whitespace(self, voice_io):
-        """listen in text mode strips leading/trailing whitespace."""
+        """Listen in text mode strips leading/trailing whitespace."""
         with patch("capabilities.voice_io.asyncio.to_thread", return_value="  hello  "):
             result = await voice_io.listen()
             assert result["text"] == "hello"
 
     @pytest.mark.asyncio
     async def test_listen_text_eof(self, voice_io):
-        """listen in text mode handles EOF gracefully."""
+        """Listen in text mode handles EOF gracefully."""
         with patch("capabilities.voice_io.asyncio.to_thread", side_effect=EOFError()):
             result = await voice_io._listen_text()
             assert result["text"] == ""
@@ -868,13 +868,13 @@ class TestVoiceIO:
 
     @pytest.mark.asyncio
     async def test_speak_text_mode_skips_tts(self, voice_io):
-        """speak in text mode skips TTS and returns done."""
+        """Speak in text mode skips TTS and returns done."""
         result = await voice_io.speak("Hello")
         assert result["status"] == "done"
 
     @pytest.mark.asyncio
     async def test_speak_empty_text(self, voice_io):
-        """speak with empty text returns done."""
+        """Speak with empty text returns done."""
         result = await voice_io.speak("")
         assert result["status"] == "done"
 
@@ -882,7 +882,7 @@ class TestVoiceIO:
 
     @pytest.mark.asyncio
     async def test_display_adds_to_log(self, voice_io):
-        """display appends to conversation log."""
+        """Display appends to conversation log."""
         await voice_io.display("Hello", "Hi there!")
         assert len(voice_io._conversation_log) == 2
         assert voice_io._conversation_log[0] == {"role": "user", "text": "Hello"}
@@ -890,21 +890,21 @@ class TestVoiceIO:
 
     @pytest.mark.asyncio
     async def test_display_user_only(self, voice_io):
-        """display with only user text adds one entry."""
+        """Display with only user text adds one entry."""
         await voice_io.display("Hello", "")
         assert len(voice_io._conversation_log) == 1
         assert voice_io._conversation_log[0]["role"] == "user"
 
     @pytest.mark.asyncio
     async def test_display_chitra_only(self, voice_io):
-        """display with only chitra text adds one entry."""
+        """Display with only chitra text adds one entry."""
         await voice_io.display("", "Hi there!")
         assert len(voice_io._conversation_log) == 1
         assert voice_io._conversation_log[0]["role"] == "chitra"
 
     @pytest.mark.asyncio
     async def test_display_returns_done(self, voice_io):
-        """display returns status done."""
+        """Display returns status done."""
         result = await voice_io.display("Hello", "Hi!")
         assert result["status"] == "done"
 
@@ -918,14 +918,14 @@ class TestVoiceIO:
     def test_extract_confidence_good(self, voice_io):
         """_extract_confidence maps good logprob to high confidence."""
         result = voice_io._extract_confidence({
-            "segments": [{"avg_logprob": -0.1}]
+            "segments": [{"avg_logprob": -0.1}],
         })
         assert result >= 0.8
 
     def test_extract_confidence_poor(self, voice_io):
         """_extract_confidence maps poor logprob to low confidence."""
         result = voice_io._extract_confidence({
-            "segments": [{"avg_logprob": -0.9}]
+            "segments": [{"avg_logprob": -0.9}],
         })
         assert result <= 0.2
 
@@ -933,12 +933,12 @@ class TestVoiceIO:
         """_extract_confidence clamps to [0.0, 1.0]."""
         # Very bad logprob
         result = voice_io._extract_confidence({
-            "segments": [{"avg_logprob": -2.0}]
+            "segments": [{"avg_logprob": -2.0}],
         })
         assert result == 0.0
 
         # Perfect logprob
         result = voice_io._extract_confidence({
-            "segments": [{"avg_logprob": 0.0}]
+            "segments": [{"avg_logprob": 0.0}],
         })
         assert result == 1.0

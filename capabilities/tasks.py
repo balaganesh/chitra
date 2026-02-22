@@ -111,7 +111,7 @@ class Tasks:
 
             if status == "all":
                 rows = conn.execute(
-                    "SELECT * FROM tasks ORDER BY priority DESC, created_at DESC"
+                    "SELECT * FROM tasks ORDER BY priority DESC, created_at DESC",
                 ).fetchall()
             elif status in ("pending", "done"):
                 rows = conn.execute(

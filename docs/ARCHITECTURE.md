@@ -175,7 +175,7 @@ Lightweight LLM call — is there anything worth telling the user right now?
 
 **Capabilities are replaceable.** Each capability has a defined API contract. The implementation behind that contract can be rewritten without touching the Orchestration Core.
 
-**The LLM is replaceable.** The LLM client is written as a clean interface. Swapping the underlying model (e.g. upgrading from Llama 3.1 8B to a newer model) is a configuration change, not a code change. As local models improve rapidly, Chitra benefits without architectural rework.
+**The LLM is replaceable.** The LLM client is written as a clean interface. Swapping the underlying model (e.g. switching from qwen2.5:7b to a newer release) is a configuration change, not a code change. As local models improve rapidly, Chitra benefits without architectural rework.
 
 **Robust failure handling.** The Orchestration Core never crashes due to malformed LLM output. All capability errors return structured error JSON. The system degrades gracefully.
 

@@ -12,6 +12,7 @@ Tests:
 """
 
 import os
+
 import pytest
 
 os.environ["CHITRA_DATA_DIR"] = "/tmp/chitra_test_memory"

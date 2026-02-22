@@ -51,7 +51,7 @@ tasks:
 
 memory:
   - search(query) — search memories by topic
-  - store(entry) — store a new memory {category, subject, content, confidence, source}
+  - store(entry) — store a new memory (category must be one of: preference, fact, observation, relationship)
 
 voice_io:
   - set_input_mode(mode) — switch between "text" and "voice" input modes
@@ -70,17 +70,24 @@ RESPONSE_FORMAT_INSTRUCTION = """You must respond with ONLY valid JSON in this e
   "response": "conversational response to speak to the user",
   "memory_store": [
     {
-      "category": "preference | fact | observation | relationship",
+      "category": "one of: preference, fact, observation, relationship",
       "subject": "what this memory is about",
       "content": "the memory in plain natural language",
       "confidence": 1.0,
-      "source": "stated | inferred"
+      "source": "stated or inferred"
     }
   ]
 }
 
-Set "action" to null if no capability needs to be called.
-Set "memory_store" to an empty array if nothing new should be stored.
+Rules for "action": set to null if no capability needs to be called.
+
+Rules for "memory_store": set to an empty array if nothing new should be stored.
+The "category" field MUST be exactly one of these four values: "preference", "fact", "observation", \
+"relationship". No other category values are valid.
+The "source" field MUST be either "stated" (user said it directly) or "inferred" (you deduced it).
+Do NOT store reminders, tasks, or calendar events as memories — use the appropriate capability action \
+instead.
+
 Respond with ONLY the JSON object, no other text."""
 
 # Proactive loop prompt — sent as the user message when the proactive loop

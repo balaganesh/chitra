@@ -132,7 +132,7 @@ The proactive loop runs as an async background task in the Orchestration Core. I
 On every tick:
 1. Call `Reminders.get_fired()` — check for triggered reminders
 2. Call `Calendar.get_upcoming(hours_ahead=1)` — check for imminent events
-3. Call `Contacts.get_neglected(days_threshold=7)` — check for neglected relationships
+3. Call `Contacts.get_neglected(days_threshold=3)` — check for neglected relationships
 4. Call `Tasks.get_overdue()` — check for overdue tasks
 5. Make a lightweight LLM call with this context — ask: is there anything worth telling the user right now?
 6. If yes — formulate a conversational message, call `VoiceIO.speak()`, call `VoiceIO.display()`
@@ -166,8 +166,9 @@ All configuration comes from environment variables (`.env` file):
 | Variable | Default | Purpose |
 |---|---|---|
 | `CHITRA_DATA_DIR` | `~/.chitra/data` | Storage directory |
-| `CHITRA_LLM_MODEL` | `llama3.1:8b` | Ollama model name |
+| `CHITRA_LLM_MODEL` | `qwen2.5:7b` | Ollama model name |
 | `CHITRA_WHISPER_MODEL` | `base` | Whisper STT model size (base, small, medium) |
+| `CHITRA_INPUT_MODE` | `text` | Default input mode (text or voice) |
 | `CHITRA_PROACTIVE_INTERVAL` | `60` | Proactive loop tick in seconds |
 | `CHITRA_HISTORY_TURNS` | `10` | Conversation turns in LLM context |
 
@@ -374,7 +375,18 @@ Create or append to `logs/test_log.md` with the following structure:
 - Any areas not yet covered by tests and why
 ```
 
-**5. Commit to dev and merge to main**
+**5. Update README**
+Review `README.md` and update any sections that are affected by this session's work. Common updates include:
+- Status section — reflect current project state
+- Test counts — update if tests were added or removed
+- Tech stack — update if dependencies or models changed
+- Configuration table — update if new env vars were added or defaults changed
+- Project structure — update if files were added or removed
+- Getting started — update if setup steps changed
+
+Do not add new sections or rewrite sections that are unaffected. Only update what changed.
+
+**6. Commit to dev and merge to main**
 After all protocol steps are complete and the user gives final approval:
 ```bash
 # Commit session end artifacts

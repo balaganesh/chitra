@@ -4,7 +4,23 @@ line-length = 100
 exclude = ["venv", ".venv", ".ci-venv", ".ci-venv2"]
 
 [tool.ruff.lint]
-ignore = ["E402"]
+select = [
+    "E",      # pycodestyle errors
+    "F",      # pyflakes
+    "W",      # pycodestyle warnings
+    "I",      # isort (import sorting)
+    "COM812", # trailing comma
+    "RET505", # superfluous else after return
+    "PERF",   # perflint
+    "RUF005", # collection literal concatenation
+    "D403",   # docstring first word capitalized
+    "D413",   # blank line after last docstring section
+    "Q003",   # avoidable escaped quote
+]
+ignore = [
+    "E402",   # module-import-not-at-top (needed for env setup before imports in tests)
+    "E501",   # line-too-long (SQL strings, prompts, and content strings are more readable long)
+]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*.py" = ["F401", "F841"]

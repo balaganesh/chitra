@@ -10,23 +10,23 @@ Tests:
 
 import asyncio
 import os
+
 import pytest
 
 # Set test data directory before any imports
 os.environ["CHITRA_DATA_DIR"] = "/tmp/chitra_test_orchestration"
 
 
-from orchestration.core import OrchestrationCore
-from orchestration.context import ContextAssembler
-from orchestration.proactive import ProactiveLoop
 from llm.client import LLMClient
 from llm.prompts import (
-    SYSTEM_IDENTITY,
-    RESPONSE_FORMAT_INSTRUCTION,
     CORRECTION_PROMPT,
     PROACTIVE_PROMPT_TEMPLATE,
+    RESPONSE_FORMAT_INSTRUCTION,
+    SYSTEM_IDENTITY,
 )
-
+from orchestration.context import ContextAssembler
+from orchestration.core import OrchestrationCore
+from orchestration.proactive import ProactiveLoop
 
 # ── Fixtures ─────────────────────────────────────────────────────
 
@@ -419,7 +419,7 @@ class TestContextAssembly:
                 "time": "10:00",
                 "duration_minutes": 60,
                 "participants": ["Ravi", "Priya"],
-            }
+            },
         ]
         result = core.context_assembler._format_upcoming_events(events)
         assert "Team Meeting" in result
@@ -436,7 +436,7 @@ class TestContextAssembly:
     async def test_format_upcoming_reminders(self, core):
         """_format_upcoming_reminders formats reminders as natural language."""
         reminders = [
-            {"text": "Call mother", "trigger_at": "2026-02-21T19:00:00"}
+            {"text": "Call mother", "trigger_at": "2026-02-21T19:00:00"},
         ]
         result = core.context_assembler._format_upcoming_reminders(reminders)
         assert "Call mother" in result

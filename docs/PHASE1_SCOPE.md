@@ -81,7 +81,7 @@ The personal knowledge layer. Stores facts, preferences, relationship context, a
 Current time, date, battery level. Always available to the Orchestration Core.
 
 **Local LLM**
-Runs entirely on device via Ollama. Model: Llama 3.1 8B or Mistral 7B — final choice made during performance testing. The LLM client is written as a clean swappable interface so replacing the model is a configuration change, not a code change. No external API calls.
+Runs entirely on device via Ollama. Model: qwen2.5:7b (selected for best JSON instruction following at 7B class). Alternatives: llama3.1:8b, mistral:7b. The LLM client is written as a clean swappable interface so replacing the model is a configuration change, not a code change. No external API calls.
 
 ## Phase 1 — Explicitly Out of Scope
 

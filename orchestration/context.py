@@ -13,7 +13,7 @@ The assembled system prompt is what makes the LLM "know" the user on every call.
 
 import logging
 
-from llm.prompts import CAPABILITY_CATALOG, SYSTEM_IDENTITY, RESPONSE_FORMAT_INSTRUCTION
+from llm.prompts import CAPABILITY_CATALOG, RESPONSE_FORMAT_INSTRUCTION, SYSTEM_IDENTITY
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +41,7 @@ class ContextAssembler:
                 "system_prompt": str,
                 "conversation_history": list
             }
+
         """
         try:
             # Gather context from all capabilities concurrently
@@ -89,7 +90,10 @@ class ContextAssembler:
             logger.error("Context assembly failed: %s", e)
             # Minimal fallback — identity + catalog + format, so the LLM can still respond
             return {
-                "system_prompt": f"{SYSTEM_IDENTITY}\n\n{CAPABILITY_CATALOG}\n\n{RESPONSE_FORMAT_INSTRUCTION}",
+                "system_prompt": (
+                    f"{SYSTEM_IDENTITY}\n\n{CAPABILITY_CATALOG}"
+                    f"\n\n{RESPONSE_FORMAT_INSTRUCTION}"
+                ),
                 "conversation_history": conversation_history,
             }
 

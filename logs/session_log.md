@@ -1,3 +1,30 @@
+## Session — 2026-02-22 (Session 9)
+
+### What was discussed
+- Reviewed the full repository state and identified next steps from where previous sessions left off
+- Agreed to tackle three items: documentation accuracy pass, incremental lint tightening, and LLM prompt improvement
+
+### Key decisions made
+1. **Model references standardized to `qwen2.5:7b`** — all 7 docs that referenced `llama3.1:8b` or `Llama 3.1 8B` updated to reflect the actual selected model
+2. **Ruff rule selection made explicit** — moved from implicit defaults to 11 explicitly selected rule categories for clarity and progressive enforcement
+3. **E501 (line-too-long) deliberately deferred** — SQL strings, prompt templates, and natural-language content are more readable long; enforcing 100-char in these contexts adds churn without quality benefit
+4. **Memory category constraint strengthened at prompt level** — rather than relying solely on server-side validation to reject bad categories, the prompt now explicitly enumerates the 4 valid categories and tells the LLM not to use others
+
+### What was built
+- **Documentation accuracy pass** — fixed outdated model references, test stub labels, missing config variable, incorrect proactive threshold, incorrect audio library name, and missing files in project structure across README.md, CLAUDE.md, DEV_SETUP.md, TECH_STACK.md, ARCHITECTURE.md, PHASE1_SCOPE.md
+- **Lint tightening** — updated `pyproject.toml` with explicit rule selection; auto-fixed 54 violations (import sorting, trailing commas, docstring formatting, escaped quotes, superfluous else); manually fixed 4 violations (PERF401, RUF005); wrapped 3 long lines in source
+- **LLM prompt improvement** — rewrote `RESPONSE_FORMAT_INSTRUCTION` memory_store section with explicit category enumeration, added constraint text, added guard against misusing memory for reminders/tasks/events; reinforced in `CAPABILITY_CATALOG` memory section
+
+### Open questions
+- None blocking
+
+### Deferred work
+- Linux VM validation
+- Voice mode end-to-end testing with audio dependencies
+- E501 enforcement in tests and string-heavy files
+
+---
+
 ## Session — 2026-02-22 (Session 8)
 
 ### What was discussed

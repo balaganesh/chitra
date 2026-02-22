@@ -56,7 +56,7 @@ Chosen because:
 ## Local LLM
 
 **Runtime:** Ollama
-**Phase 1 model:** Llama 3.1 8B or Mistral 7B — final choice made during performance testing on target hardware
+**Phase 1 model:** qwen2.5:7b — selected for best JSON instruction following at 7B class on 16GB hardware. Alternatives: llama3.1:8b, mistral:7b
 **Interface:** Ollama local REST API (localhost only, never exposed externally)
 
 **Model swappability — critical design requirement:**
@@ -122,7 +122,7 @@ The user can switch between modes at any time. The Orchestration Core receives i
 
 ## Audio I/O
 
-**Library:** PyAudio or sounddevice
+**Library:** sounddevice
 **Purpose:** Microphone capture and speaker playback
 **Linux backend:** ALSA or PipeWire (PipeWire preferred on modern Linux)
 

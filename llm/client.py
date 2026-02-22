@@ -61,6 +61,7 @@ class LLMClient:
                 "response": str,
                 "memory_store": list
             }
+
         """
         messages = [{"role": "system", "content": system_prompt}]
 

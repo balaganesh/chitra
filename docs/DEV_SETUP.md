@@ -62,12 +62,12 @@ ollama serve &
 
 Pull the Phase 1 model:
 ```bash
-ollama pull llama3.1:8b
+ollama pull qwen2.5:7b
 ```
 
 Verify it works:
 ```bash
-ollama run llama3.1:8b "say hello"
+ollama run qwen2.5:7b "say hello"
 ```
 
 To switch models, update `CHITRA_LLM_MODEL` in your `.env` file. No code changes required.
@@ -112,7 +112,7 @@ Edit `.env` to set your configuration:
 CHITRA_DATA_DIR=~/.chitra
 
 # LLM model — change this to swap models, no code change required
-CHITRA_LLM_MODEL=llama3.1:8b
+CHITRA_LLM_MODEL=qwen2.5:7b
 
 # Proactive loop tick interval in seconds
 CHITRA_PROACTIVE_INTERVAL=60
@@ -239,9 +239,12 @@ chitra/
   scripts/
     setup_piper.py              # Piper TTS setup
     setup_storage.py            # Storage initialization
+    seed_demo.py                # Demo scenario seed data
   tests/
-    test_capabilities.py        # Capability unit tests
-    test_orchestration.py       # Orchestration integration tests
+    test_orchestration.py       # Orchestration integration tests (54 tests)
+    test_onboarding.py          # Onboarding flow tests (26 tests)
+    test_capabilities.py        # Capability unit tests (94 tests)
+    test_memory.py              # Memory-specific tests (38 tests)
   docs/
     VISION.md
     ARCHITECTURE.md
@@ -272,7 +275,7 @@ Re-run `python scripts/setup_piper.py` to redownload the voice model.
 Check `~/.chitra/` directory permissions: `ls -la ~/.chitra/`
 
 **Model not found**
-Ensure you pulled the model matching `CHITRA_LLM_MODEL` in your `.env`: `ollama pull llama3.1:8b`
+Ensure you pulled the model matching `CHITRA_LLM_MODEL` in your `.env`: `ollama pull qwen2.5:7b`
 
 ---
 

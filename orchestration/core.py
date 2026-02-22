@@ -39,7 +39,7 @@ class OrchestrationCore:
 
         # Data directory — all capability databases live here
         self.data_dir = os.environ.get(
-            "CHITRA_DATA_DIR", os.path.expanduser("~/.chitra/data")
+            "CHITRA_DATA_DIR", os.path.expanduser("~/.chitra/data"),
         )
         os.makedirs(self.data_dir, exist_ok=True)
 
@@ -168,7 +168,7 @@ class OrchestrationCore:
                 self.is_user_active = False
                 # Don't crash — log and continue
                 await self.voice_io.display(
-                    "", "I'm sorry, something went wrong. Let me try again."
+                    "", "I'm sorry, something went wrong. Let me try again.",
                 )
 
     async def handle_input(self, user_text: str) -> str:
@@ -182,6 +182,7 @@ class OrchestrationCore:
 
         Returns:
             The conversational response text from Chitra
+
         """
         try:
             # Assemble context — Memory, System State, Calendar, Reminders
@@ -190,7 +191,7 @@ class OrchestrationCore:
 
             # First LLM call — understand intent and decide action
             llm_response = await self.llm.call(
-                system_prompt, user_text, self.conversation_history
+                system_prompt, user_text, self.conversation_history,
             )
 
             response_text = llm_response.get("response", "")
@@ -212,7 +213,7 @@ class OrchestrationCore:
                     )
 
                     followup_response = await self.llm.call(
-                        system_prompt, followup_message, self.conversation_history
+                        system_prompt, followup_message, self.conversation_history,
                     )
                     response_text = followup_response.get("response", response_text)
 
@@ -248,6 +249,7 @@ class OrchestrationCore:
 
         Returns:
             The capability's result dict, or None if the action could not be executed.
+
         """
         try:
             capability_name = action.get("capability")

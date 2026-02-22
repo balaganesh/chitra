@@ -1,3 +1,29 @@
+## 2026-02-22 — Session 9
+
+### Added
+- Nothing
+
+### Changed
+- **Documentation accuracy pass** across 7 files — all model references updated from `llama3.1:8b` to `qwen2.5:7b`, test stub labels corrected to actual counts, missing config variable `CHITRA_INPUT_MODE` added to CLAUDE.md, proactive loop threshold corrected (7→3 days), audio library corrected (`sounddevice`), missing files added to project structure in DEV_SETUP.md
+- **Ruff lint configuration tightened** in `pyproject.toml` — explicit rule selection expanded from defaults to 11 categories (E, F, W, I001, COM812, RET505, PERF, RUF005, D403, D413, Q003); 58 violations fixed (54 auto-fixed, 4 manual)
+- **LLM prompt improved** in `llm/prompts.py` — memory_store category constraint made explicit with allowed values list, guard against storing reminders/tasks/events as memories, ambiguous pipe syntax replaced with clear enumeration
+
+### Fixed
+- Import ordering across 6 files (auto-fixed by ruff I001)
+- Missing trailing commas across 11 locations (auto-fixed by ruff COM812)
+- Docstring capitalization in 13 test methods (auto-fixed by ruff D403)
+- 2 manual list comprehension replacements in `capabilities/memory.py` (PERF401)
+- 2 collection literal concatenation fixes in `capabilities/memory.py` and `capabilities/contacts.py` (RUF005)
+- Line-length violations in `capabilities/contacts.py`, `capabilities/memory.py`, `orchestration/context.py` (E501)
+- Superfluous else-after-return in `capabilities/voice_io.py` (RET505)
+
+### Deferred
+- Linux VM validation
+- Voice mode end-to-end testing with audio dependencies
+- E501 enforcement in tests and string-heavy scripts (cosmetic, low value)
+
+---
+
 ## 2026-02-22 — Session 8
 
 ### Added

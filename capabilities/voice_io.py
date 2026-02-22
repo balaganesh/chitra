@@ -40,8 +40,8 @@ logger = logging.getLogger(__name__)
 
 _HAS_SOUNDDEVICE = False
 try:
-    import sounddevice as sd
     import numpy as np
+    import sounddevice as sd
 
     _HAS_SOUNDDEVICE = True
 except ImportError:
@@ -135,12 +135,12 @@ class VoiceIO:
 
         Returns:
             {"text": str, "confidence": float}
+
         """
         try:
             if self._input_mode == "text":
                 return await self._listen_text()
-            else:
-                return await self._listen_voice()
+            return await self._listen_voice()
         except Exception as e:
             logger.error("Listen failed: %s", e)
             return {"error": f"Listen failed: {e}"}
@@ -153,6 +153,7 @@ class VoiceIO:
 
         Returns:
             {"status": "done"}
+
         """
         try:
             if not text:
@@ -186,6 +187,7 @@ class VoiceIO:
 
         Returns:
             {"status": "done"}
+
         """
         try:
             if user_text:
@@ -206,6 +208,7 @@ class VoiceIO:
 
         Returns:
             {"status": "done", "mode": str}
+
         """
         try:
             if mode not in ("text", "voice"):
@@ -294,7 +297,7 @@ class VoiceIO:
         if self._whisper_model is None and _HAS_WHISPER:
             logger.info("Loading Whisper model: %s", self._whisper_model_name)
             self._whisper_model = await asyncio.to_thread(
-                whisper.load_model, self._whisper_model_name
+                whisper.load_model, self._whisper_model_name,
             )
             logger.info("Whisper model loaded")
 
@@ -384,6 +387,7 @@ class VoiceIO:
 
         Returns:
             Whisper result dict with 'text' and 'segments' keys
+
         """
         audio_float = audio_data.flatten().astype(np.float32)
 

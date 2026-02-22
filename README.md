@@ -83,7 +83,7 @@ The brain of Chitra — fully implemented:
 | Component | Technology |
 |---|---|
 | Language | Python 3.11+, asyncio |
-| Local LLM | Ollama (Llama 3.1 8B / Mistral 7B) |
+| Local LLM | Ollama (qwen2.5:7b recommended) |
 | Speech-to-Text | OpenAI Whisper (local) |
 | Text-to-Speech | Piper TTS |
 | Voice Activity Detection | Silero VAD |
@@ -121,7 +121,7 @@ All configuration via environment variables (see `.env.example`):
 | Variable | Default | Description |
 |---|---|---|
 | `CHITRA_DATA_DIR` | `~/.chitra/data` | Storage directory for all capability databases |
-| `CHITRA_LLM_MODEL` | `llama3.1:8b` | Ollama model name — swap models without code changes |
+| `CHITRA_LLM_MODEL` | `qwen2.5:7b` | Ollama model name — swap models without code changes |
 | `CHITRA_WHISPER_MODEL` | `base` | Whisper STT model size (base, small, medium) |
 | `CHITRA_INPUT_MODE` | `text` | Default input mode (text or voice) |
 | `CHITRA_PROACTIVE_INTERVAL` | `60` | Proactive loop tick interval in seconds |
@@ -159,8 +159,8 @@ chitra/
   tests/
     test_orchestration.py       # Orchestration + LLM + context tests (54 tests)
     test_onboarding.py          # Onboarding flow tests (26 tests)
-    test_capabilities.py        # Capability test stubs
-    test_memory.py              # Memory test stubs
+    test_capabilities.py        # Capability unit tests (94 tests)
+    test_memory.py              # Memory-specific tests (38 tests)
   docs/                         # Architecture and design documentation
 ```
 
@@ -201,4 +201,4 @@ Apache 2.0 — see [LICENSE](LICENSE).
 
 ## Status
 
-🟢 **Phase 1 — Core implementation complete.** All 7 capabilities, orchestration layer, LLM client, proactive loop, and onboarding flow are built and tested. Pending: end-to-end integration testing with live Ollama, voice mode testing with audio dependencies, and Linux VM validation.
+🟢 **Phase 1 — Core implementation complete.** All 7 capabilities, orchestration layer, LLM client, proactive loop, and onboarding flow are built and tested. Demo scenario verified end-to-end with live Ollama (qwen2.5:7b). CI pipeline active (lint + 212 tests). Pending: voice mode testing with audio dependencies and Linux VM validation.
