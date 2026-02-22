@@ -1,3 +1,22 @@
+## 2026-02-22 — Session 10
+
+### Added
+- **21 voice pipeline tests** in `tests/test_capabilities.py` — `TestVoiceIOVoice` class covering model loading (Whisper lazy load, VAD lazy load, idempotent), voice input pipeline (transcription, no-speech, error paths, mode dispatch), VAD recording (speech detection, no-speech, max duration), transcription (normalization, Whisper params), TTS (Piper subprocess, failure handling, empty output, audio playback), and dev TTS fallback (macOS say, platform check, mode gating)
+- **macOS `say` TTS dev fallback** in `capabilities/voice_io.py` — `_dev_tts_fallback` flag, `_speak_dev_fallback()` method, activated when Piper is unavailable on Darwin
+
+### Changed
+- **Silero VAD loading** in `capabilities/voice_io.py` — replaced `torch.hub.load` with `silero_vad.load_silero_vad()` pip package API (bundles model locally, no network fetch)
+- **Audio dependencies installed** — openai-whisper, silero-vad, sounddevice, numpy verified in dev venv
+
+### Fixed
+- Nothing
+
+### Deferred
+- Linux VM validation with Piper TTS
+- Interactive voice conversation testing with live Ollama
+
+---
+
 ## 2026-02-22 — Session 9
 
 ### Added

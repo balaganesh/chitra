@@ -1,3 +1,38 @@
+## Session — 2026-02-22 (Session 10)
+
+### What was discussed
+- Voice mode end-to-end testing — installing audio deps, adding dev TTS fallback, writing automated tests, and manual pipeline verification
+
+### Key decisions made
+1. **Silero VAD switched from torch.hub to pip package API** — `silero_vad.load_silero_vad()` bundles the model locally, eliminating network fetch at runtime and fixing SSL issues on dev machines
+2. **macOS `say` command added as dev-only TTS fallback** — activates automatically when Piper binary is unavailable on Darwin; clearly marked as not for production
+3. **Dev TTS fallback controlled by `_dev_tts_fallback` flag** — computed at init time, testable, and does not alter the Piper production code path
+
+### What was built
+- **Audio deps installed and verified** — openai-whisper, silero-vad, sounddevice, numpy all installed in dev venv with successful imports
+- **macOS `say` TTS fallback** — added `_dev_tts_fallback` flag and `_speak_dev_fallback()` method to `capabilities/voice_io.py`; production Piper path unchanged
+- **21 voice pipeline tests** — new `TestVoiceIOVoice` class in `tests/test_capabilities.py` covering model loading, voice input, VAD recording, transcription, TTS (Piper + dev fallback), and mode dispatch
+- **Silero VAD loading improved** — replaced `torch.hub.load` with `silero_vad.load_silero_vad()` package API in `_load_silero_vad()`
+
+### Manual verification results
+- Audio devices detected: MacBook Air Microphone (input), MacBook Air Speakers (output)
+- Voice mode switch: successful
+- Whisper base model: loaded from cache, device=cpu
+- Silero VAD model: loaded via pip package API
+- macOS `say` TTS: spoke text audibly
+- Microphone recording: captured 48000 samples (3s at 16kHz)
+- Whisper transcription: returned empty for ambient noise (correct behavior)
+
+### Open questions
+- Full interactive voice-to-voice loop (user speaks → Whisper → LLM → say response) requires manual testing with live Ollama and speech input
+- Piper TTS on macOS remains blocked by dyld shared library issue — `say` fallback covers development use
+
+### Deferred work
+- Linux VM validation with Piper TTS
+- Interactive voice conversation testing with live Ollama
+
+---
+
 ## Session — 2026-02-22 (Session 9)
 
 ### What was discussed
@@ -328,7 +363,7 @@
 - **.gitignore** — added for Python/venv/macOS artifacts
 
 ### Open questions
-- Silero VAD API: current implementation uses `torch.hub.load`. The `silero-vad==5.1` pip package may provide a simpler API (`from silero_vad import load_silero_vad`). Should be verified when audio deps are installed.
+- ~~Silero VAD API~~ — **Resolved in Session 10**: switched to `silero_vad.load_silero_vad()` pip package API
 - Piper TTS sample rate (22050 Hz) is hardcoded for the lessac model — may need adjustment for other voice models.
 
 ### Deferred work
@@ -338,4 +373,4 @@
 - Onboarding flow implementation
 - Piper TTS download logic in setup_piper.py
 - Full test implementations
-- Voice mode end-to-end testing (requires audio deps installed)
+- ~~Voice mode end-to-end testing~~ — **Completed in Session 10**

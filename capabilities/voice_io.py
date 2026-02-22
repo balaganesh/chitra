@@ -30,6 +30,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import os
+import platform
 import subprocess
 
 logger = logging.getLogger(__name__)
@@ -113,16 +114,28 @@ class VoiceIO:
             and os.access(self._piper_binary, os.X_OK)
         )
 
-        if not self._tts_available:
+        # Dev-only fallback: macOS `say` command when Piper is unavailable.
+        # NOT for production — Piper is the production TTS engine.
+        self._dev_tts_fallback = (
+            not self._tts_available
+            and platform.system() == "Darwin"
+        )
+
+        if not self._tts_available and not self._dev_tts_fallback:
             logger.warning("Piper TTS not found at %s — TTS disabled", self._piper_binary)
+        elif not self._tts_available and self._dev_tts_fallback:
+            logger.warning(
+                "Piper TTS not found — using macOS say command as dev fallback",
+            )
 
         logger.info(
-            "VoiceIO initialized — mode: %s, audio: %s, stt: %s, vad: %s, tts: %s",
+            "VoiceIO initialized — mode: %s, audio: %s, stt: %s, vad: %s, tts: %s, dev_tts: %s",
             self._input_mode,
             self._audio_available,
             self._stt_available,
             self._vad_available,
             self._tts_available,
+            self._dev_tts_fallback,
         )
 
     # ── Public actions ──────────────────────────────────────────────
@@ -163,11 +176,11 @@ class VoiceIO:
             if self._input_mode == "text":
                 return {"status": "done"}
 
-            if not self._tts_available:
+            if not self._tts_available and not self._dev_tts_fallback:
                 logger.info("TTS unavailable — skipping speech")
                 return {"status": "done"}
 
-            if not self._audio_available:
+            if not self._audio_available and not self._dev_tts_fallback:
                 logger.info("Audio unavailable — skipping playback")
                 return {"status": "done"}
 
@@ -309,18 +322,11 @@ class VoiceIO:
     def _load_silero_vad(self):
         """Load Silero VAD model. Blocking — called via asyncio.to_thread.
 
-        NOTE: torch.hub.load may attempt a network fetch on first run if
-        the model is not cached locally. For Phase 1 local-only operation,
-        the VAD model must be pre-cached during setup. A future improvement
-        is to use the silero-vad pip package which bundles the model locally.
+        Uses the silero-vad pip package which bundles the model locally,
+        avoiding any network fetch at runtime.
         """
-        model, utils = torch.hub.load(
-            repo_or_dir="snakers4/silero-vad",
-            model="silero_vad",
-            force_reload=False,
-            onnx=False,
-        )
-        return model
+        import silero_vad as sv
+        return sv.load_silero_vad()
 
     def _record_with_vad(self):
         """Record audio from microphone, using VAD to detect speech boundaries.
@@ -422,10 +428,15 @@ class VoiceIO:
     # ── TTS pipeline ────────────────────────────────────────────────
 
     def _speak_blocking(self, text: str):
-        """Run Piper TTS and play the output. Blocking — called via asyncio.to_thread.
+        """Run TTS and play the output. Blocking — called via asyncio.to_thread.
 
-        Pipes text to Piper stdin, captures raw PCM from stdout, plays via sounddevice.
+        Production path: Piper TTS subprocess → raw PCM → sounddevice playback.
+        Dev fallback: macOS `say` command when Piper is unavailable (not for production).
         """
+        if self._dev_tts_fallback and not self._tts_available:
+            self._speak_dev_fallback(text)
+            return
+
         try:
             process = subprocess.run(
                 [
@@ -463,6 +474,23 @@ class VoiceIO:
             logger.error("Piper TTS timed out")
         except Exception as e:
             logger.error("TTS playback failed: %s", e)
+
+    def _speak_dev_fallback(self, text: str):
+        """Dev-only TTS fallback using macOS say command.
+
+        Only used when Piper binary is unavailable and platform is macOS.
+        NOT for production — Piper is the production TTS engine.
+        """
+        try:
+            subprocess.run(
+                ["say", text],
+                timeout=30,
+                check=False,
+            )
+        except subprocess.TimeoutExpired:
+            logger.error("Dev TTS fallback (say) timed out")
+        except Exception as e:
+            logger.error("Dev TTS fallback (say) failed: %s", e)
 
     # ── Display ─────────────────────────────────────────────────────
 

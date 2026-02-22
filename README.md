@@ -159,7 +159,7 @@ chitra/
   tests/
     test_orchestration.py       # Orchestration + LLM + context tests (54 tests)
     test_onboarding.py          # Onboarding flow tests (26 tests)
-    test_capabilities.py        # Capability unit tests (94 tests)
+    test_capabilities.py        # Capability unit tests (115 tests)
     test_memory.py              # Memory-specific tests (38 tests)
   docs/                         # Architecture and design documentation
 ```
@@ -168,14 +168,14 @@ chitra/
 
 ## Tests
 
-212 tests, all passing:
+233 tests, all passing:
 
 ```bash
 source venv/bin/activate
 python3 -m pytest tests/ -v
 ```
 
-Coverage includes all 7 capabilities, Orchestration Core, Proactive Loop, Context Assembly, LLM Client, Prompts, and Onboarding Flow. Voice mode end-to-end and live Ollama integration are deferred to runtime testing.
+Coverage includes all 7 capabilities (including voice mode with mocked audio hardware), Orchestration Core, Proactive Loop, Context Assembly, LLM Client, Prompts, and Onboarding Flow. Demo scenario verified end-to-end with live Ollama.
 
 ---
 
@@ -201,4 +201,4 @@ Apache 2.0 — see [LICENSE](LICENSE).
 
 ## Status
 
-🟢 **Phase 1 — Core implementation complete.** All 7 capabilities, orchestration layer, LLM client, proactive loop, and onboarding flow are built and tested. Demo scenario verified end-to-end with live Ollama (qwen2.5:7b). CI pipeline active (lint + 212 tests). Pending: voice mode testing with audio dependencies and Linux VM validation.
+🟢 **Phase 1 — Core implementation complete.** All 7 capabilities, orchestration layer, LLM client, proactive loop, and onboarding flow are built and tested. Demo scenario verified end-to-end with live Ollama (qwen2.5:7b). Voice pipeline tested with mocked hardware (21 tests) and verified on macOS with `say` TTS fallback. CI pipeline active (lint + 233 tests). Pending: Linux VM validation with Piper TTS.

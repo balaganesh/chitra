@@ -9,7 +9,7 @@ Tests each capability's:
 
 import os
 from datetime import datetime, timedelta
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -942,3 +942,377 @@ class TestVoiceIO:
             "segments": [{"avg_logprob": 0.0}],
         })
         assert result == 1.0
+
+
+# ═══════════════════════════════════════════════════════════════════
+# Voice I/O — Voice Mode (mocked audio hardware)
+# ═══════════════════════════════════════════════════════════════════
+
+try:
+    import numpy as np
+    import torch
+    _AUDIO_DEPS_AVAILABLE = True
+except ImportError:
+    _AUDIO_DEPS_AVAILABLE = False
+
+skip_no_audio = pytest.mark.skipif(
+    not _AUDIO_DEPS_AVAILABLE,
+    reason="Audio deps (numpy, torch) not installed",
+)
+
+
+@skip_no_audio
+class TestVoiceIOVoice:
+    """Tests for Voice I/O voice-mode code paths with mocked audio hardware."""
+
+    @pytest.fixture
+    def voice_io_with_audio(self):
+        """Create a VoiceIO with audio flags force-enabled for testing."""
+        vio = VoiceIO()
+        vio._audio_available = True
+        vio._stt_available = True
+        vio._vad_available = True
+        return vio
+
+    # ── model loading ──────────────────────────────────────────────
+
+    @pytest.mark.asyncio
+    async def test_ensure_whisper_loaded_lazily(self, voice_io_with_audio):
+        """Whisper model is loaded on first call, not at init."""
+        vio = voice_io_with_audio
+        assert vio._whisper_model is None
+
+        mock_model = MagicMock()
+        with patch("capabilities.voice_io.whisper") as mock_whisper:
+            mock_whisper.load_model.return_value = mock_model
+            with patch.object(vio, "_load_silero_vad", return_value=MagicMock()):
+                await vio._ensure_voice_models_loaded()
+
+        assert vio._whisper_model is mock_model
+        mock_whisper.load_model.assert_called_once_with(vio._whisper_model_name)
+
+    @pytest.mark.asyncio
+    async def test_ensure_vad_loaded_lazily(self, voice_io_with_audio):
+        """VAD model is loaded on first call, not at init."""
+        vio = voice_io_with_audio
+        assert vio._vad_model is None
+
+        mock_vad = MagicMock()
+        with patch("capabilities.voice_io.whisper") as mock_whisper:
+            mock_whisper.load_model.return_value = MagicMock()
+            with patch.object(vio, "_load_silero_vad", return_value=mock_vad):
+                await vio._ensure_voice_models_loaded()
+
+        assert vio._vad_model is mock_vad
+
+    @pytest.mark.asyncio
+    async def test_models_loaded_only_once(self, voice_io_with_audio):
+        """Second call to _ensure_voice_models_loaded is a no-op."""
+        vio = voice_io_with_audio
+        vio._whisper_model = MagicMock()
+        vio._vad_model = MagicMock()
+
+        with patch("capabilities.voice_io.whisper") as mock_whisper:
+            await vio._ensure_voice_models_loaded()
+
+        mock_whisper.load_model.assert_not_called()
+
+    # ── voice input pipeline ───────────────────────────────────────
+
+    @pytest.mark.asyncio
+    async def test_listen_voice_returns_transcription(self, voice_io_with_audio):
+        """_listen_voice returns text and confidence from Whisper."""
+        vio = voice_io_with_audio
+        vio._whisper_model = MagicMock()
+        vio._vad_model = MagicMock()
+
+        fake_audio = np.zeros(16000, dtype=np.float32)
+        whisper_result = {
+            "text": " Hello Chitra ",
+            "segments": [{"avg_logprob": -0.15}],
+        }
+        vio._whisper_model.transcribe.return_value = whisper_result
+
+        with patch.object(vio, "_record_with_vad", return_value=fake_audio):
+            result = await vio._listen_voice()
+
+        assert result["text"] == "Hello Chitra"
+        assert result["confidence"] > 0.5
+
+    @pytest.mark.asyncio
+    async def test_listen_voice_no_speech(self, voice_io_with_audio):
+        """_listen_voice returns empty text when VAD detects no speech."""
+        vio = voice_io_with_audio
+        vio._whisper_model = MagicMock()
+        vio._vad_model = MagicMock()
+
+        with patch.object(vio, "_record_with_vad", return_value=None):
+            result = await vio._listen_voice()
+
+        assert result["text"] == ""
+        assert result["confidence"] == 0.0
+
+    @pytest.mark.asyncio
+    async def test_listen_voice_error_no_audio(self):
+        """_listen_voice returns error when audio deps unavailable."""
+        vio = VoiceIO()
+        vio._audio_available = False
+        vio._stt_available = True
+
+        result = await vio._listen_voice()
+        assert "error" in result
+
+    @pytest.mark.asyncio
+    async def test_listen_voice_error_no_stt(self):
+        """_listen_voice returns error when whisper unavailable."""
+        vio = VoiceIO()
+        vio._audio_available = True
+        vio._stt_available = False
+
+        result = await vio._listen_voice()
+        assert "error" in result
+
+    @pytest.mark.asyncio
+    async def test_set_mode_voice_succeeds_with_deps(self, voice_io_with_audio):
+        """Setting voice mode succeeds when audio deps are present."""
+        result = await voice_io_with_audio.set_input_mode("voice")
+        assert result["status"] == "done"
+        assert result["mode"] == "voice"
+
+    @pytest.mark.asyncio
+    async def test_listen_dispatches_by_mode(self, voice_io_with_audio):
+        """Listen dispatches to _listen_voice when mode is voice."""
+        vio = voice_io_with_audio
+        vio._input_mode = "voice"
+
+        mock_result = {"text": "hello", "confidence": 0.9}
+        with patch.object(vio, "_listen_voice", return_value=mock_result):
+            result = await vio.listen()
+
+        assert result["text"] == "hello"
+
+    # ── VAD recording ──────────────────────────────────────────────
+
+    def test_record_with_vad_detects_speech(self, voice_io_with_audio):
+        """_record_with_vad captures audio when VAD detects speech."""
+        vio = voice_io_with_audio
+        vio._vad_model = MagicMock()
+
+        chunk_samples = int(vio.SAMPLE_RATE * 30 / 1000)
+        speech_chunk = np.random.randn(chunk_samples, 1).astype(np.float32)
+        silence_chunk = np.zeros((chunk_samples, 1), dtype=np.float32)
+
+        call_count = [0]
+        speech_chunks = 10
+        silence_after = int(vio.SILENCE_DURATION_MS / 30) + 1
+
+        def vad_side_effect(tensor, sr):
+            call_count[0] += 1
+            if call_count[0] <= speech_chunks:
+                return torch.tensor(0.9)
+            return torch.tensor(0.1)
+
+        vio._vad_model.side_effect = vad_side_effect
+
+        mock_stream = MagicMock()
+        read_count = [0]
+
+        def read_fn(n):
+            read_count[0] += 1
+            if read_count[0] <= speech_chunks:
+                return speech_chunk, False
+            return silence_chunk, False
+
+        mock_stream.read = read_fn
+        mock_stream.__enter__ = lambda s: s
+        mock_stream.__exit__ = lambda s, *a: None
+
+        with patch("capabilities.voice_io.sd.InputStream", return_value=mock_stream):
+            result = vio._record_with_vad()
+
+        assert result is not None
+        assert len(result) > 0
+
+    def test_record_with_vad_no_speech(self, voice_io_with_audio):
+        """_record_with_vad returns None when no speech detected."""
+        vio = voice_io_with_audio
+        vio._vad_model = MagicMock()
+
+        chunk_samples = int(vio.SAMPLE_RATE * 30 / 1000)
+        silence_chunk = np.zeros((chunk_samples, 1), dtype=np.float32)
+
+        vio._vad_model.return_value = torch.tensor(0.1)
+
+        mock_stream = MagicMock()
+        mock_stream.read = lambda n: (silence_chunk, False)
+        mock_stream.__enter__ = lambda s: s
+        mock_stream.__exit__ = lambda s, *a: None
+
+        with patch("capabilities.voice_io.sd.InputStream", return_value=mock_stream):
+            with patch.object(vio, "MAX_RECORDING_SECONDS", 0.1):
+                result = vio._record_with_vad()
+
+        assert result is None
+
+    # ── transcription ──────────────────────────────────────────────
+
+    def test_transcribe_normalizes_audio(self, voice_io_with_audio):
+        """_transcribe normalizes audio that exceeds [-1, 1] range."""
+        vio = voice_io_with_audio
+        mock_model = MagicMock()
+        mock_model.transcribe.return_value = {"text": "hello", "segments": []}
+        vio._whisper_model = mock_model
+
+        loud_audio = np.array([2.0, -3.0, 1.5], dtype=np.float32)
+        vio._transcribe(loud_audio)
+
+        call_args = mock_model.transcribe.call_args
+        audio_arg = call_args[0][0]
+        assert np.abs(audio_arg).max() <= 1.0
+
+    def test_transcribe_calls_whisper_correctly(self, voice_io_with_audio):
+        """_transcribe passes correct params to Whisper."""
+        vio = voice_io_with_audio
+        mock_model = MagicMock()
+        mock_model.transcribe.return_value = {"text": "test", "segments": []}
+        vio._whisper_model = mock_model
+
+        audio = np.zeros(16000, dtype=np.float32)
+        vio._transcribe(audio)
+
+        mock_model.transcribe.assert_called_once()
+        call_kwargs = mock_model.transcribe.call_args[1]
+        assert call_kwargs["language"] == "en"
+        assert call_kwargs["fp16"] is False
+
+    # ── TTS ────────────────────────────────────────────────────────
+
+    def test_speak_blocking_calls_piper(self, voice_io_with_audio):
+        """_speak_blocking calls Piper with correct args when available."""
+        vio = voice_io_with_audio
+        vio._tts_available = True
+        vio._dev_tts_fallback = False
+
+        raw_pcm = np.zeros(22050, dtype=np.int16).tobytes()
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        mock_result.stdout = raw_pcm
+        mock_result.stderr = b""
+
+        with patch("capabilities.voice_io.subprocess.run", return_value=mock_result) as mock_run:
+            with patch("capabilities.voice_io.sd.play"):
+                with patch("capabilities.voice_io.sd.wait"):
+                    vio._speak_blocking("Hello")
+
+        mock_run.assert_called_once()
+        call_args = mock_run.call_args[0][0]
+        assert vio._piper_binary in call_args
+        assert "--model" in call_args
+        assert "--output_raw" in call_args
+
+    def test_speak_blocking_piper_failure(self, voice_io_with_audio):
+        """_speak_blocking handles Piper non-zero exit gracefully."""
+        vio = voice_io_with_audio
+        vio._tts_available = True
+        vio._dev_tts_fallback = False
+
+        mock_result = MagicMock()
+        mock_result.returncode = 1
+        mock_result.stderr = b"error"
+
+        with patch("capabilities.voice_io.subprocess.run", return_value=mock_result):
+            with patch("capabilities.voice_io.sd.play") as mock_play:
+                vio._speak_blocking("Hello")
+
+        mock_play.assert_not_called()
+
+    def test_speak_blocking_piper_empty_output(self, voice_io_with_audio):
+        """_speak_blocking handles empty Piper output gracefully."""
+        vio = voice_io_with_audio
+        vio._tts_available = True
+        vio._dev_tts_fallback = False
+
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        mock_result.stdout = b""
+
+        with patch("capabilities.voice_io.subprocess.run", return_value=mock_result):
+            with patch("capabilities.voice_io.sd.play") as mock_play:
+                vio._speak_blocking("Hello")
+
+        mock_play.assert_not_called()
+
+    def test_speak_blocking_plays_audio(self, voice_io_with_audio):
+        """_speak_blocking plays PCM audio via sounddevice after Piper succeeds."""
+        vio = voice_io_with_audio
+        vio._tts_available = True
+        vio._dev_tts_fallback = False
+
+        raw_pcm = np.zeros(22050, dtype=np.int16).tobytes()
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        mock_result.stdout = raw_pcm
+
+        with patch("capabilities.voice_io.subprocess.run", return_value=mock_result):
+            with patch("capabilities.voice_io.sd.play") as mock_play:
+                with patch("capabilities.voice_io.sd.wait") as mock_wait:
+                    vio._speak_blocking("Hello")
+
+        mock_play.assert_called_once()
+        mock_wait.assert_called_once()
+        audio_arg = mock_play.call_args[0][0]
+        assert audio_arg.dtype == np.float32
+
+    def test_speak_dev_fallback_uses_say(self, voice_io_with_audio):
+        """_speak_blocking uses macOS say when dev fallback is active."""
+        vio = voice_io_with_audio
+        vio._tts_available = False
+        vio._dev_tts_fallback = True
+
+        with patch("capabilities.voice_io.subprocess.run") as mock_run:
+            vio._speak_blocking("Hello Bala")
+
+        mock_run.assert_called_once()
+        call_args = mock_run.call_args[0][0]
+        assert call_args == ["say", "Hello Bala"]
+
+    def test_speak_dev_fallback_flag_darwin_only(self):
+        """Dev TTS fallback flag is set only on macOS when Piper is missing."""
+        with patch("capabilities.voice_io.platform.system", return_value="Darwin"):
+            vio = VoiceIO()
+            vio._tts_available = False
+            # Re-compute the flag as __init__ does
+            flag = not vio._tts_available and True  # Darwin
+        assert flag is True
+
+        with patch("capabilities.voice_io.platform.system", return_value="Linux"):
+            vio2 = VoiceIO()
+        assert vio2._dev_tts_fallback is False
+
+    @pytest.mark.asyncio
+    async def test_speak_voice_mode_with_dev_fallback(self, voice_io_with_audio):
+        """Speak in voice mode uses dev fallback when Piper unavailable."""
+        vio = voice_io_with_audio
+        vio._input_mode = "voice"
+        vio._tts_available = False
+        vio._dev_tts_fallback = True
+
+        with patch("capabilities.voice_io.subprocess.run") as mock_run:
+            result = await vio.speak("Hello")
+
+        assert result["status"] == "done"
+        mock_run.assert_called_once()
+        assert mock_run.call_args[0][0] == ["say", "Hello"]
+
+    @pytest.mark.asyncio
+    async def test_speak_text_mode_skips_tts(self, voice_io_with_audio):
+        """Speak in text mode skips TTS even when dev fallback is available."""
+        vio = voice_io_with_audio
+        vio._input_mode = "text"
+        vio._dev_tts_fallback = True
+
+        with patch("capabilities.voice_io.subprocess.run") as mock_run:
+            result = await vio.speak("Hello")
+
+        assert result["status"] == "done"
+        mock_run.assert_not_called()

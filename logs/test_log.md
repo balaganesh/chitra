@@ -1,3 +1,32 @@
+## Test Run — 2026-02-22 (Session 10)
+
+### Summary
+- Total formal tests: 233
+- Passed: 233
+- Failed: 0
+- Run time: 5.11 seconds
+
+### Tests added this session
+- `TestVoiceIOVoice` class (21 tests) in `tests/test_capabilities.py`:
+  - Model loading: Whisper lazy load, VAD lazy load, idempotent load (3 tests)
+  - Voice input pipeline: transcription, no-speech, error paths (no audio, no STT), mode switch, dispatch (6 tests)
+  - VAD recording: speech detection, no-speech with max duration (2 tests)
+  - Transcription: audio normalization, Whisper param verification (2 tests)
+  - TTS: Piper subprocess, failure handling, empty output, audio playback (4 tests)
+  - Dev TTS fallback: macOS say, platform flag, voice mode gating, text mode skip (4 tests)
+
+### Verification
+- Full test suite: 233/233 passing (212 existing + 21 new voice tests)
+- `ruff check .` passes with all configured rules
+- Manual pipeline verification: audio devices, model loading, `say` TTS, mic recording all functional
+
+### Coverage notes
+- Voice-mode code paths now tested with mocked hardware (sounddevice, Whisper, VAD, Piper)
+- macOS `say` dev fallback tested with mocked subprocess
+- Existing 212 tests unaffected — no regressions
+
+---
+
 ## Test Run — 2026-02-22 (Session 9)
 
 ### Summary
