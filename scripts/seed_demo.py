@@ -49,7 +49,6 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from capabilities.calendar import Calendar
 from capabilities.contacts import Contacts
 from capabilities.memory import Memory
-from capabilities.reminders import Reminders
 from capabilities.tasks import Tasks
 
 logger = logging.getLogger(__name__)

@@ -5,7 +5,6 @@ Entry point. Boots the AI Orchestration Core as the primary process.
 
 import asyncio
 import os
-import sys
 
 from dotenv import load_dotenv
 
