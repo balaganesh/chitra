@@ -190,6 +190,19 @@ Coverage includes all 7 capabilities (including voice mode with mocked audio har
 | [TECH_STACK.md](docs/TECH_STACK.md) | Technology choices and rationale |
 | [PHASE1_SCOPE.md](docs/PHASE1_SCOPE.md) | Phase 1 scope and demo acceptance criteria |
 | [DEV_SETUP.md](docs/DEV_SETUP.md) | Development environment setup |
+| [DEPLOYMENT.md](docs/DEPLOYMENT.md) | Linux device deployment guide |
+
+---
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, code style, testing requirements, and the pull request process.
+
+---
+
+## Security
+
+To report a security vulnerability, see [SECURITY.md](SECURITY.md). Do not open a public issue for security reports.
 
 ---
 

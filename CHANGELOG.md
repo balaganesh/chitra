@@ -1,3 +1,24 @@
+## 2026-02-22 — Session 15
+
+### Added
+- `docs/DEPLOYMENT.md` — Linux device deployment guide with hardware recommendations
+- `CONTRIBUTING.md` — contribution guidelines
+- `CODE_OF_CONDUCT.md` — Contributor Covenant v2.1
+- `SECURITY.md` — security vulnerability disclosure policy
+- `.github/ISSUE_TEMPLATE/bug_report.md` — bug report template
+- `.github/ISSUE_TEMPLATE/feature_request.md` — feature request template
+- `.github/PULL_REQUEST_TEMPLATE.md` — pull request checklist
+
+### Changed
+- `.gitignore` — added `.ruff_cache/` and `.cursor/`
+- `README.md` — added Contributing, Security sections and deployment doc link
+
+### Fixed
+- Removed unused `Dockerfile` and `.dockerignore` (Docker approach abandoned)
+
+### Deferred
+- `scripts/deploy.sh` and `scripts/chitra.service` — for when hardware is acquired
+
 ## 2026-02-22 — Session 14
 
 ### Added

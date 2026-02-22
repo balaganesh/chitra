@@ -1,3 +1,29 @@
+## Session — 2026-02-22 (Session 15)
+
+### What was discussed
+- Phase 1 officially complete — all Definition of Done items verified
+- Linux device deployment planning: hardware options (mini PC, Orange Pi, Raspberry Pi), resource budget, Ubuntu Server setup, systemd auto-start, one-command install
+- Open-source readiness audit: identified 5 categories of missing items (community files, GitHub templates, .gitignore gaps, README polish, deployment doc)
+- Docker cleanup: removed unused Dockerfile and .dockerignore
+
+### What was built
+- `docs/DEPLOYMENT.md` — Linux device deployment guide (hardware recommendations, step-by-step setup, systemd service config, troubleshooting)
+- `CONTRIBUTING.md` — dev setup, branching model, code style, testing requirements, PR process
+- `CODE_OF_CONDUCT.md` — Contributor Covenant v2.1
+- `SECURITY.md` — responsible disclosure policy
+- `.github/ISSUE_TEMPLATE/bug_report.md` — structured bug report template
+- `.github/ISSUE_TEMPLATE/feature_request.md` — feature request template
+- `.github/PULL_REQUEST_TEMPLATE.md` — PR checklist
+- Updated `.gitignore` — added `.ruff_cache/` and `.cursor/`
+- Updated `README.md` — added Contributing, Security sections and DEPLOYMENT.md to docs table
+
+### Open questions
+- None
+
+### Deferred work
+- `scripts/deploy.sh` — one-command deployment script (for when hardware is acquired)
+- `scripts/chitra.service` — systemd unit file (for when deployment is actively pursued)
+
 ## Session — 2026-02-22 (Session 14)
 
 ### What was discussed
