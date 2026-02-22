@@ -32,7 +32,7 @@ class LLMClient:
     """Interface to the local LLM via Ollama. Model is configurable, never hardcoded."""
 
     def __init__(self):
-        self.model = os.environ.get("CHITRA_LLM_MODEL", "llama3.1:8b")
+        self.model = os.environ.get("CHITRA_LLM_MODEL", "qwen2.5:7b")
         self.base_url = "http://localhost:11434"
         self._client = httpx.AsyncClient(base_url=self.base_url, timeout=120.0)
 

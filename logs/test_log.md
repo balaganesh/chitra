@@ -1,3 +1,25 @@
+## Test Run — 2026-02-22 (Session 11)
+
+### Summary
+- Total formal tests: 233
+- Passed: 233
+- Failed: 0
+- Run time: 5.17 seconds
+
+### Tests added this session
+- None — this was a bug fix and manual verification session
+
+### Verification
+- Full test suite: 233/233 passing after LLM client default and VAD chunk size fixes
+- `ruff check .` passes with all configured rules
+- Interactive voice conversation: 3-turn voice loop with live Ollama verified on macOS
+
+### Coverage notes
+- LLM client initialization test updated to match new default model (`qwen2.5:7b`)
+- No new test classes added — existing 233 tests cover all code changes
+
+---
+
 ## Test Run — 2026-02-22 (Session 10)
 
 ### Summary

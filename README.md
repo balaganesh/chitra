@@ -201,4 +201,4 @@ Apache 2.0 — see [LICENSE](LICENSE).
 
 ## Status
 
-🟢 **Phase 1 — Core implementation complete.** All 7 capabilities, orchestration layer, LLM client, proactive loop, and onboarding flow are built and tested. Demo scenario verified end-to-end with live Ollama (qwen2.5:7b). Voice pipeline tested with mocked hardware (21 tests) and verified on macOS with `say` TTS fallback. CI pipeline active (lint + 233 tests). Pending: Linux VM validation with Piper TTS.
+🟢 **Phase 1 — Core implementation complete.** All 7 capabilities, orchestration layer, LLM client, proactive loop, and onboarding flow are built and tested. Demo scenario verified end-to-end with live Ollama (qwen2.5:7b). Full voice-to-voice conversation verified on macOS (Whisper STT + LLM + macOS say TTS). CI pipeline active (lint + 233 tests). Pending: Linux VM validation with Piper TTS.

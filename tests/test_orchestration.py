@@ -468,7 +468,7 @@ class TestLLMClient:
     def test_initialization(self):
         """LLM client initializes with model from env var."""
         client = LLMClient()
-        assert client.model == os.environ.get("CHITRA_LLM_MODEL", "llama3.1:8b")
+        assert client.model == os.environ.get("CHITRA_LLM_MODEL", "qwen2.5:7b")
 
     def test_parse_valid_json(self):
         """_parse_response parses valid JSON correctly."""

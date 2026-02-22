@@ -1,3 +1,26 @@
+## 2026-02-22 — Session 11
+
+### Added
+- Nothing
+
+### Changed
+- Nothing
+
+### Fixed
+- **LLM client default model** in `llm/client.py` — changed from `llama3.1:8b` to `qwen2.5:7b` to match installed model and documentation
+- **Silero VAD chunk size** in `capabilities/voice_io.py` — changed from 30ms (480 samples) to 32ms (512 samples) to meet Silero VAD v6 minimum requirement
+- **Test assertion** in `tests/test_orchestration.py` — updated LLM client initialization test to expect `qwen2.5:7b` default
+
+### Verified
+- **Full voice-to-voice loop** — 3-turn interactive conversation: Mic → VAD → Whisper STT → Context → LLM (qwen2.5:7b) → Action Dispatch → Memory Store → Display → macOS say TTS
+
+### Deferred
+- Linux VM validation with Piper TTS
+- Piper TTS setup script completion
+- CI voice test coverage
+
+---
+
 ## 2026-02-22 — Session 10
 
 ### Added

@@ -335,7 +335,8 @@ class VoiceIO:
 
         Returns numpy array of float32 audio samples, or None if no speech detected.
         """
-        chunk_duration_ms = 30
+        # Silero VAD v6 requires minimum 512 samples at 16kHz (32ms)
+        chunk_duration_ms = 32
         chunk_samples = int(self.SAMPLE_RATE * chunk_duration_ms / 1000)
         silence_chunks = int(self.SILENCE_DURATION_MS / chunk_duration_ms)
         max_chunks = int(self.MAX_RECORDING_SECONDS * 1000 / chunk_duration_ms)

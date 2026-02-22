@@ -1,3 +1,33 @@
+## Session — 2026-02-22 (Session 11)
+
+### What was discussed
+- Interactive voice conversation with live Ollama — full voice-to-voice loop verification
+
+### Key decisions made
+1. **LLM client default model fixed** — code default was still `llama3.1:8b` while docs said `qwen2.5:7b`; aligned code to `qwen2.5:7b`
+2. **Silero VAD chunk size fixed** — v6 requires minimum 512 samples; changed from 30ms (480 samples) to 32ms (512 samples)
+
+### What was built
+- **Full voice-to-voice loop verified** — Mic → Silero VAD → Whisper STT → Context Assembly → LLM (qwen2.5:7b) → Action Dispatch (reminders.create) → Memory Store → Rich Display → macOS say TTS
+- **3-turn interactive conversation completed** — user spoke, Chitra transcribed, reasoned through LLM, executed actions (created reminder), stored memories, and spoke responses
+- **Bug fixes** — LLM client default model (`llama3.1:8b` → `qwen2.5:7b`), Silero VAD chunk size (30ms → 32ms)
+
+### Manual verification results
+- Turn 1: Whisper transcribed speech, Chitra responded contextually using memory (knew user name "Bala" and prior context about calling mother)
+- Turn 2: User requested reminder, Chitra created reminder via `reminders.create` action, made follow-up LLM call, stored memory observations, spoke confirmation
+- Turn 3: User confirmed, Chitra responded conversationally, stored memory observation
+
+### Open questions
+- Whisper confidence scores were low (0.00–0.58) despite correct transcription — likely due to ambient noise or short utterances; not a blocking issue
+- Piper TTS on macOS remains blocked by dyld shared library issue — `say` fallback covers development use
+
+### Deferred work
+- Linux VM validation with Piper TTS
+- Piper TTS setup script completion
+- CI voice test coverage (install audio deps in CI for mocked tests)
+
+---
+
 ## Session — 2026-02-22 (Session 10)
 
 ### What was discussed
