@@ -3,21 +3,24 @@
 ### Added
 - **`scripts/seed_demo.py`** — demo scenario seed script that pre-populates all capability databases for the PHASE1_SCOPE.md demo
   - Contacts: Amma (mother, last interaction 5 days ago), Ravi (best friend, 2 days), Priya (colleague, today)
-  - Calendar: Team meeting today at 10:00 with participants
+  - Calendar: Team meeting 30 min from now (dynamic time so demo always works)
   - Tasks: Review project notes, Update documentation, Prepare presentation — all with due dates
   - Memory: 9 entries — user name, input mode preference, work schedule, relationships, calling mother preference, project notes preference, morning routine observation
   - Marks onboarding complete so Chitra boots directly into conversation
   - Wipes and re-creates all databases each run for clean state
-  - Uses today's date dynamically so temporal references are always correct
+  - Uses dynamic dates so temporal references are always correct
+- **End-to-end demo verified** against live Ollama with `qwen2.5:7b` — full pipeline works:
+  proactive loop → greeting → reminder creation → second proactive → confirmation
 
 ### Changed
-- Nothing
+- Default LLM model: `llama3.1:8b` → `qwen2.5:7b` in `.env.example` (best JSON instruction following at 7B class)
+- Neglected contacts threshold: 7 days → 3 days in proactive loop (matches demo scenario where Amma is 5 days neglected)
+- Calendar seed: static `10:00` → dynamic `now + 30 min` so upcoming events always appear in proactive context
 
 ### Fixed
-- Nothing
+- Proactive loop found no context because meeting time was in the past and neglected threshold was too high — both now dynamically correct
 
 ### Deferred
-- End-to-end integration test with live Ollama (requires `ollama pull llama3.1:8b`)
 - Voice mode end-to-end testing with audio deps
 - Linux VM testing
 

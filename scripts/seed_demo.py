@@ -150,17 +150,25 @@ async def seed_calendar(data_dir: str):
     """Seed calendar events for the demo scenario.
 
     Creates:
-    - Team meeting today at 10:00 (60 min) with Priya
+    - Team meeting today, 30 minutes from now (so it appears in upcoming events)
     - No afternoon events (so the proactive loop can note the free afternoon)
+
+    The meeting time is set dynamically so the demo works regardless of
+    when the seed script is run.
     """
     calendar = Calendar(os.path.join(data_dir, "calendar.db"))
-    today = datetime.now().date().isoformat()
+    now = datetime.now()
+    today = now.date().isoformat()
+
+    # Set meeting 30 minutes from now so it shows up in upcoming events
+    meeting_time = now + timedelta(minutes=30)
+    meeting_time_str = meeting_time.strftime("%H:%M")
 
     events = [
         {
             "title": "Team meeting",
             "date": today,
-            "time": "10:00",
+            "time": meeting_time_str,
             "duration_minutes": 60,
             "notes": "Weekly standup and project review",
             "participants": ["Priya", "Arun", "Deepa"],
@@ -373,7 +381,8 @@ async def seed_all():
     logger.info("")
     logger.info("Seeded data:")
     logger.info("  Contacts: Amma (mother, 5 days ago), Ravi (friend), Priya (colleague)")
-    logger.info("  Calendar: Team meeting today at 10:00")
+    meeting_time = (datetime.now() + timedelta(minutes=30)).strftime("%H:%M")
+    logger.info("  Calendar: Team meeting today at %s (30 min from now)", meeting_time)
     logger.info("  Tasks:    Review project notes, Update docs, Prepare presentation")
     logger.info("  Memory:   9 entries (name, preferences, relationships, observations)")
     logger.info("  Onboarding: marked complete")

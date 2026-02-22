@@ -157,9 +157,9 @@ class ProactiveLoop:
         except Exception as e:
             logger.error("Proactive: failed to check calendar: %s", e)
 
-        # 3. Neglected contacts (no interaction in 7+ days)
+        # 3. Neglected contacts (no interaction in 3+ days)
         try:
-            neglected = await self.core.contacts.get_neglected(days_threshold=7)
+            neglected = await self.core.contacts.get_neglected(days_threshold=3)
             if neglected:
                 lines = ["People you haven't been in touch with recently:"]
                 for contact in neglected[:3]:  # Limit to top 3 to avoid overload

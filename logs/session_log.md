@@ -3,29 +3,39 @@
 ### What was discussed
 - Building the demo seed script to pre-populate databases for the PHASE1_SCOPE.md demo scenario
 - Reviewed all capability APIs (Contacts, Calendar, Tasks, Memory, Reminders) to understand exact field names and create patterns
+- Selected `qwen2.5:7b` as the recommended LLM model for 16GB M4 MacBook Air
+- Ran the full demo scenario end-to-end against live Ollama — identified and fixed two issues with proactive loop context gathering
 - Reviewed the onboarding marker mechanism to skip onboarding for seeded data
 
 ### Key decisions made
-1. **Wipe and re-create on every run** — seed script deletes all existing databases and re-creates from scratch. Ensures clean, reproducible state. Safe because it's a setup script, not runtime code.
+1. **Wipe and re-create on every run** — seed script deletes all existing databases and re-creates from scratch. Ensures clean, reproducible state.
 2. **Dynamic dates** — all dates computed from `datetime.now()` so the demo scenario is temporally correct regardless of when it's run
-3. **Amma's last_interaction set to 5 days ago** — matches the demo scenario exactly ("it's been 5 days since you last noted a call with her")
-4. **9 memory entries** — covers both what onboarding would have collected (name, input mode, key people, work schedule) and demo-specific memories (calling mother preference, project notes, morning routine)
-5. **No reminders pre-seeded** — the user creates these during the demo conversation ("set a reminder to call her at 7 this evening")
+3. **Amma's last_interaction set to 5 days ago** — matches the demo scenario exactly
+4. **9 memory entries** — covers both onboarding data and demo-specific memories
+5. **No reminders pre-seeded** — the user creates these during the demo conversation
+6. **`qwen2.5:7b` selected as default model** — best JSON instruction following at 7B class, fits comfortably in 16GB M4, ~32 tok/s
+7. **Neglected contacts threshold lowered to 3 days** — 7 days was too high for the demo scenario (Amma is 5 days neglected)
+8. **Calendar meeting time set dynamically** — `now + 30 min` instead of static `10:00` so it always appears in upcoming events
 
 ### What was built
 - **`scripts/seed_demo.py`** — complete demo seed script:
   - `seed_contacts()` — Amma, Ravi, Priya with correct last_interaction offsets
-  - `seed_calendar()` — Team meeting today at 10:00
+  - `seed_calendar()` — Team meeting 30 min from now (dynamic)
   - `seed_tasks()` — 3 pending tasks with due dates computed from today
   - `seed_memory()` — 9 memory entries across all 4 categories
   - `_mark_onboarding_complete()` — creates `.onboarding_complete` marker
   - `_wipe_databases()` — removes all existing .db files for clean state
+- **End-to-end demo run** — verified against live Ollama with qwen2.5:7b:
+  - Proactive loop surfaces meeting + neglected Amma ✅
+  - Greeting uses user's name from memory ✅
+  - Reminder creation dispatches correctly ✅
+  - Second proactive tick fires unprompted ✅
+  - Confirmation creates 2pm reminder ✅
 
 ### Open questions
-- None — seed script is complete and verified
+- LLM sometimes tries to store memories with invalid category "reminder" — validation catches it correctly, but prompt could be improved to prevent the attempt
 
 ### Deferred work
-- End-to-end integration test with live Ollama (requires pulling llama3.1:8b model)
 - Voice mode end-to-end testing with audio deps
 - Linux VM testing
 
