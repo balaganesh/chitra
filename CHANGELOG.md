@@ -1,3 +1,22 @@
+## 2026-02-22 — Session 8
+
+### Added
+- Nothing
+
+### Changed
+- CI dependency installation in `.github/workflows/ci.yml` now installs only core/test/lint packages required for the workflow (instead of full `requirements.txt`)
+- Ruff exclude list in `pyproject.toml` expanded to include local virtualenv directory patterns used during CI reproduction
+
+### Fixed
+- GitHub Actions failure in `lint-and-test` caused by optional audio dependency build path (`openai-whisper`) during CI setup
+
+### Deferred
+- Incremental lint tightening (reduce baseline ignores over follow-up sessions)
+- Linux VM validation
+- Voice mode end-to-end testing with audio dependencies
+
+---
+
 ## 2026-02-22 — Session 7
 
 ### Added

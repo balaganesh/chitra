@@ -1,3 +1,36 @@
+## Session — 2026-02-22 (Session 8)
+
+### What was discussed
+- Post-closure follow-up requested after GitHub Actions reported failure on the latest run
+- Investigated and resolved the CI failure, then propagated the fix across branches
+- Requested to re-close the session after post-closure work
+
+### Key decisions made
+1. **CI should install only what it actually needs** — avoid optional audio dependencies in CI setup
+2. **Keep voice/audio deps optional for runtime environments** — preserve project behavior while stabilizing CI
+3. **Apply the CI fix to both `dev` and `main`** so branch behavior remains consistent
+
+### What was built
+- **CI hotfix** in `.github/workflows/ci.yml`:
+  - Replaced `pip install -r requirements.txt` with explicit install list for core/test/lint dependencies used by workflow steps
+- **Ruff config adjustment** in `pyproject.toml`:
+  - Expanded exclude list to include temporary virtualenv directory patterns used during local CI reproduction
+- **Branch synchronization**:
+  - Committed and pushed fix on `dev`
+  - Fast-forward merged `dev` into `main` and pushed `main`
+- **Re-closure test run**:
+  - Full suite rerun with 212/212 passing
+
+### Open questions
+- None blocking
+
+### Deferred work
+- Incremental lint tightening and cleanup pass
+- Linux VM validation
+- Voice mode end-to-end testing with audio dependencies
+
+---
+
 ## Session — 2026-02-22 (Session 7)
 
 ### What was discussed

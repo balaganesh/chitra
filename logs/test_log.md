@@ -1,3 +1,25 @@
+## Test Run — 2026-02-22 (Session 8)
+
+### Summary
+- Total formal tests: 212
+- Passed: 212
+- Failed: 0
+- Run time: 3.85 seconds
+
+### Tests added this session
+- None — this was a CI hotfix and re-closure session
+
+### Manual verification
+- Reproduced CI install failure path locally in clean virtualenv
+- Confirmed `ruff check .` passes after workflow/config update
+- Confirmed workflow dependency set avoids optional audio build-time blockers
+
+### Coverage notes
+- No runtime capability behavior changed
+- Existing full suite remains green with no regressions
+
+---
+
 ## Test Run — 2026-02-22 (Session 7)
 
 ### Summary
