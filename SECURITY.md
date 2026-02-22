@@ -4,7 +4,7 @@
 
 If you discover a security vulnerability in Chitra, please report it responsibly. **Do not open a public GitHub issue for security vulnerabilities.**
 
-Instead, please email: **chitra@balaganesh.dev**
+Instead, please email: **chitra@balaganesh.org**
 
 Include:
 - A description of the vulnerability
