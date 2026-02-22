@@ -11,6 +11,7 @@ FROM python:3.11-slim
 # System deps for sounddevice (ALSA headers) and audio file handling
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libasound2-dev \
+    libportaudio2 \
     libsndfile1 \
     && rm -rf /var/lib/apt/lists/*
 

@@ -45,7 +45,7 @@ try:
     import sounddevice as sd
 
     _HAS_SOUNDDEVICE = True
-except ImportError:
+except Exception:
     sd = None
     np = None
     logger.warning("sounddevice/numpy not available — voice mode disabled")
@@ -55,7 +55,7 @@ try:
     import whisper
 
     _HAS_WHISPER = True
-except ImportError:
+except Exception:
     whisper = None
     logger.warning("openai-whisper not available — STT disabled")
 
@@ -64,7 +64,7 @@ try:
     import torch
 
     _HAS_SILERO_VAD = True
-except ImportError:
+except Exception:
     torch = None
     logger.warning("torch not available — VAD disabled")
 
