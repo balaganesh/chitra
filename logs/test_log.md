@@ -1,3 +1,24 @@
+## Test Run — 2026-02-22 (Session 12)
+
+### Summary
+- Total formal tests: 233
+- Passed: 233
+- Failed: 0
+- Run time: 5.06 seconds
+
+### Tests added this session
+- None
+
+### Verification
+- Full test suite: 233/233 passing after Piper availability check change
+- `ruff check .` passes
+- `setup_piper.py` verified: downloads binary + model, idempotent re-run
+
+### Coverage notes
+- Piper runtime check (`_check_piper_available`) tested indirectly by existing VoiceIO tests (the flag is set at init time and affects TTS behavior)
+
+---
+
 ## Test Run — 2026-02-22 (Session 11)
 
 ### Summary

@@ -1,3 +1,20 @@
+## 2026-02-22 — Session 12
+
+### Added
+- **Piper runtime check** in `capabilities/voice_io.py` — `_check_piper_available()` verifies binary, platform-specific shared libraries, and voice model file exist before marking TTS as available
+
+### Changed
+- Nothing
+
+### Fixed
+- **Piper TTS false positive on macOS** — binary existed but crashed at runtime due to missing shared libraries; now detected correctly via file-system check instead of process execution (which hangs macOS crash reporter)
+
+### Deferred
+- Linux VM validation with Piper TTS
+- CI voice test coverage
+
+---
+
 ## 2026-02-22 — Session 11
 
 ### Added

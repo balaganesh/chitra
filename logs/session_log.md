@@ -1,3 +1,25 @@
+## Session — 2026-02-22 (Session 12)
+
+### What was discussed
+- Piper TTS setup script verification and Piper runtime availability check improvement
+
+### Key decisions made
+1. **Piper availability check changed from process execution to file-system check** — running the Piper binary on macOS triggers the crash reporter and hangs the parent process indefinitely; switched to checking that required shared libraries exist alongside the binary
+2. **Setup script confirmed complete** — was already fully implemented with download, extraction, idempotency, and error handling
+
+### What was built
+- **Piper runtime check** — `_check_piper_available()` method in `voice_io.py` verifies binary, shared libraries (platform-specific), and voice model file all exist
+- **Verified setup script** — `scripts/setup_piper.py` successfully downloads Piper binary (18.3 MB), voice model (60.3 MB), and config; idempotent on re-run
+
+### Open questions
+- None
+
+### Deferred work
+- Linux VM validation with Piper TTS (shared libraries are properly bundled on Linux)
+- CI voice test coverage
+
+---
+
 ## Session — 2026-02-22 (Session 11)
 
 ### What was discussed

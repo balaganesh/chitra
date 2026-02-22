@@ -109,10 +109,7 @@ class VoiceIO:
         self._audio_available = _HAS_SOUNDDEVICE
         self._stt_available = _HAS_WHISPER
         self._vad_available = _HAS_SILERO_VAD
-        self._tts_available = (
-            os.path.isfile(self._piper_binary)
-            and os.access(self._piper_binary, os.X_OK)
-        )
+        self._tts_available = self._check_piper_available()
 
         # Dev-only fallback: macOS `say` command when Piper is unavailable.
         # NOT for production — Piper is the production TTS engine.
@@ -122,10 +119,10 @@ class VoiceIO:
         )
 
         if not self._tts_available and not self._dev_tts_fallback:
-            logger.warning("Piper TTS not found at %s — TTS disabled", self._piper_binary)
+            logger.warning("Piper TTS not available at %s — TTS disabled", self._piper_binary)
         elif not self._tts_available and self._dev_tts_fallback:
             logger.warning(
-                "Piper TTS not found — using macOS say command as dev fallback",
+                "Piper TTS not functional — using macOS say command as dev fallback",
             )
 
         logger.info(
@@ -139,6 +136,49 @@ class VoiceIO:
         )
 
     # ── Public actions ──────────────────────────────────────────────
+
+    def _check_piper_available(self) -> bool:
+        """Verify Piper binary and its shared libraries are present.
+
+        Checks the binary exists and is executable, then verifies the required
+        shared libraries are present in the same directory. The macOS Piper build
+        is missing bundled shared libraries (libespeak-ng, libpiper_phonemize,
+        libonnxruntime) — this catches that without running the binary, which
+        would trigger the macOS crash reporter and hang.
+        """
+        if not os.path.isfile(self._piper_binary):
+            return False
+        if not os.access(self._piper_binary, os.X_OK):
+            return False
+
+        tts_dir = os.path.dirname(self._piper_binary)
+        system = platform.system()
+
+        if system == "Darwin":
+            required_libs = [
+                "libespeak-ng.1.dylib",
+                "libpiper_phonemize.1.dylib",
+                "libonnxruntime.1.14.1.dylib",
+            ]
+        elif system == "Linux":
+            required_libs = [
+                "libespeak-ng.so.1",
+                "libpiper_phonemize.so.1",
+                "libonnxruntime.so.1.14.1",
+            ]
+        else:
+            return False
+
+        for lib in required_libs:
+            if not os.path.isfile(os.path.join(tts_dir, lib)):
+                logger.debug("Missing Piper shared library: %s", lib)
+                return False
+
+        if not os.path.isfile(self._piper_model):
+            logger.debug("Missing Piper voice model: %s", self._piper_model)
+            return False
+
+        return True
 
     async def listen(self) -> dict:
         """Return user input as text. Behavior depends on current input mode.
