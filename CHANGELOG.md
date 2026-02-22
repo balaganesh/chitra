@@ -4,10 +4,11 @@
 - **Piper runtime check** in `capabilities/voice_io.py` — `_check_piper_available()` verifies binary, platform-specific shared libraries, and voice model file exist before marking TTS as available
 
 ### Changed
-- Nothing
+- **TTS methods return bool** in `capabilities/voice_io.py` — `_speak_blocking()` and `_speak_dev_fallback()` now return True/False indicating actual speech outcome; `speak()` logs accurately instead of always claiming success
 
 ### Fixed
 - **Piper TTS false positive on macOS** — binary existed but crashed at runtime due to missing shared libraries; now detected correctly via file-system check instead of process execution (which hangs macOS crash reporter)
+- **TTS false success logging** — `speak()` previously logged "Spoke: ..." even when TTS failed silently; now logs "TTS failed for: ..." on failure
 
 ### Deferred
 - Linux VM validation with Piper TTS

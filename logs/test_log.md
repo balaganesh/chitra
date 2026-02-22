@@ -4,18 +4,20 @@
 - Total formal tests: 233
 - Passed: 233
 - Failed: 0
-- Run time: 5.06 seconds
+- Run time: 5.16 seconds
 
 ### Tests added this session
 - None
 
 ### Verification
-- Full test suite: 233/233 passing after Piper availability check change
+- Full test suite: 233/233 passing after Piper availability check and TTS error handling changes
 - `ruff check .` passes
 - `setup_piper.py` verified: downloads binary + model, idempotent re-run
+- Architecture/vision/scope compliance audit passed
 
 ### Coverage notes
-- Piper runtime check (`_check_piper_available`) tested indirectly by existing VoiceIO tests (the flag is set at init time and affects TTS behavior)
+- Piper runtime check (`_check_piper_available`) tested indirectly by existing VoiceIO tests
+- TTS bool return tested by existing `test_speak_blocking_*` and `test_speak_dev_fallback_*` tests (mocked subprocess)
 
 ---
 

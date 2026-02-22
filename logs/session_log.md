@@ -1,15 +1,24 @@
 ## Session — 2026-02-22 (Session 12)
 
 ### What was discussed
-- Piper TTS setup script verification and Piper runtime availability check improvement
+- Piper TTS setup script verification and runtime availability check improvement
+- Full architecture/vision/scope compliance audit of sessions 10–12
+- Exception handling audit — found and fixed TTS false success reporting
 
 ### Key decisions made
 1. **Piper availability check changed from process execution to file-system check** — running the Piper binary on macOS triggers the crash reporter and hangs the parent process indefinitely; switched to checking that required shared libraries exist alongside the binary
 2. **Setup script confirmed complete** — was already fully implemented with download, extraction, idempotency, and error handling
+3. **TTS exception handling made honest** — `_speak_blocking` and `_speak_dev_fallback` now return bool; `speak()` logs accurately based on actual outcome
 
 ### What was built
 - **Piper runtime check** — `_check_piper_available()` method in `voice_io.py` verifies binary, shared libraries (platform-specific), and voice model file all exist
 - **Verified setup script** — `scripts/setup_piper.py` successfully downloads Piper binary (18.3 MB), voice model (60.3 MB), and config; idempotent on re-run
+- **TTS error reporting fix** — `_speak_blocking` and `_speak_dev_fallback` return bool success/failure; `speak()` logs "Spoke:" on success, "TTS failed for:" on failure instead of always claiming success
+
+### Compliance audit results
+- Architecture, vision, phase 1 scope — all compliant
+- CLAUDE.md rules 1–8 — all compliant; macOS `say` fallback is dev-only (Rule 5)
+- Exception handling — one pre-existing issue found (TTS false success) and fixed; no other hidden errors
 
 ### Open questions
 - None
